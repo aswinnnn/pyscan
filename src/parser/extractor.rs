@@ -1,0 +1,69 @@
+use lazy_static::lazy_static;
+use regex::Regex;
+use pep_508::{self, Spec};
+use super::structs::{Dependency};
+use toml::Table;
+
+pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
+    lazy_static! {
+        static ref IMPORT_REGEX : Regex = Regex::new(
+                r"^\s*(?:from|import)\s+(\w+(?:\s*,\s*\w+)*)"
+            ).unwrap();
+    }
+
+    for x in IMPORT_REGEX.find_iter(&text) {
+        let mat = x.as_str().to_string();
+        let mat = mat.replacen("import", "", 1).trim().to_string();
+
+        imp.push(Dependency { name: mat, version: None, comparator: None })
+
+    }
+}
+
+pub fn extract_imports_reqs(text: String, imp: &mut Vec<Dependency>) {
+    // requirements.txt uses a PEP 508 parser to parse dependencies accordingly
+    // you might think its just a text file, but I'm gonna decline reinventing the wheel
+    // just to parse "requests >= 2.0.8"
+    
+    let parsed = pep_508::parse(text.as_str());
+
+    if  let Ok(dep) = parsed {
+        let dname = dep.name.to_string();
+        // println!("{:?}", dep.clone());
+        if let Some(ver) = dep.spec {
+            if let Spec::Version(verspec) = ver {
+                for v in verspec {
+                    // pyscan only takes the first version spec found for the dependency
+                    // for now.
+                    let version = v.version.to_string();
+                    let comparator = v.comparator;
+                    imp.push(Dependency{name: dname, version: Some(version), comparator: Some(comparator)});
+                    break;
+                }
+            }
+        }
+        else {
+            imp.push(Dependency{name: dname, version: None, comparator: None});
+        }
+    }
+
+    
+}
+
+pub fn extract_imports_pyproject(f: String, imp: &mut Vec<Dependency>) {
+    let parsed = f.parse::<Table>();
+    if let Ok(parsed) = parsed {
+        let project = &parsed["project"];
+        let deps = &project["dependencies"];
+        let deps = deps.as_array().unwrap();
+        for d in deps {
+            let d = d.as_str().unwrap().to_string();
+            imp.push(Dependency { name: d, version: None, comparator: None })
+
+        }
+    }
+}
+
+// Dependency { name: "requests", extras: [], spec: Some(Version([VersionSpec { comparator: Ge, version: "2.0.8" }])), marker: None }
+// Dependency { name: "lxml", extras: [], spec: None, marker: None }
+// Dependency { name: "gay", extras: [], spec: None, marker: None }

@@ -1,0 +1,24 @@
+[project]
+name = "weheartpy"
+version = "0.2.4"
+authors = [
+  { name="Aswin S", email="aswinsnair028@gmail.com" },
+]
+description = "A comprehensive, realiable API client for weheartit."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  'requests',
+  'lxml',
+  'user-agent'
+]
+
+[project.urls]
+"Homepage" = "https://github.com/aswinnnn/weheartpy"
+"Bug Tracker" = "https://github.com/aswinnnn/weheartpy/issues"
