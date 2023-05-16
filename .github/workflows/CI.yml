@@ -25,6 +25,8 @@ jobs:
       matrix:
         target: [x86_64, x86, aarch64]
     steps:
+      - name: install libssl
+        run:  apt install libssl-dev
       - uses: actions/checkout@v3
       - name: Build wheels
         uses: PyO3/maturin-action@v1
