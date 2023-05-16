@@ -24,9 +24,6 @@ struct Cli {
 
 }
 
-// cargo publish
-// pypi  publish
-// post reddit
 
 fn main() {
     let args = Cli::parse();

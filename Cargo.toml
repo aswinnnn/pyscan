@@ -8,7 +8,7 @@ description = "Python dependency vulnerability scanner"
 readme = "README.md"
 homepage = "https://github.com/aswinnnn/pyscan"
 repository = "https://github.com/aswinnnn/pyscan"
-keywords = ["cli", "python", "security", "vulnerability", "pyo3", "scanner", "pip"]
+keywords = ["cli", "python", "security", "vulnerability", "pyo3"]
 categories = ["command-line-utilities"]
 
 
