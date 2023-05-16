@@ -1,6 +1,6 @@
 <h1 align="center"> 🐍 Pyscan </h1>
 
-![CI](https://github.com/aswinnnn/pyscan/actions/workflows/CI.yml/badge.svg) [![PyPI license](https://img.shields.io/pypi/l/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/) [![GitHub issues](https://img.shields.io/github/issues/aswinnnn/pyscan.svg)](https://GitHub.com/aswinnnn/pyscan/issues/) [![Top Language](https://img.shields.io/github/languages/top/aswinnnn/pyscan)](https://img.shields.io/github/languages/top/aswinnnn/pyscan)
+![CI](https://github.com/aswinnnn/pyscan/actions/workflows/CI.yml/badge.svg) [![PyPI](https://img.shields.io/pypi/v/pyscan-rs?color=ff69b4)](https://pypi.org/project/pyscan-rs) [![GitHub issues](https://img.shields.io/github/issues/aswinnnn/pyscan.svg?color=ff69b4)](https://GitHub.com/aswinnnn/pyscan/issues/) [![Top Language](https://img.shields.io/github/languages/top/aswinnnn/pyscan?color=ff69b4)](https://img.shields.io/github/languages/top/aswinnnn/pyscan)
 
 <h4 align="center"> 
 
