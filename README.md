@@ -18,9 +18,9 @@
 ## 🕊️ Install
 
 ```bash
-pip install pyscan
+pip install pyscan-rs
 ```
-
+look out for the "-rs" part
 or
 
 ```bash
