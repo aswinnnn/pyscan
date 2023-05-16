@@ -1,6 +1,6 @@
 <h1 align="center"> 🐍 Pyscan </h1>
 
-![CI](https://github.com/aswinnnn/pyscan/actions/workflows/CI.yml/badge.svg) [![PyPI license] (https://img.shields.io/pypi/l/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/) [![GitHub issues](https://img.shields.io/github/issues/aswinnnn/pyscan.svg)](https://GitHub.com/aswinnnn/pyscan/issues/) [![Downloads](https://static.pepy.tech/personalized-badge/pyscan-rs?period=total&units=abbreviation&left_color=black&right_color=black&left_text=Downloads)](https://pepy.tech/project/pyscan-rs)  [![Top Language](https://img.shields.io/github/languages/top/aswinnnn/pyscan)](https://img.shields.io/github/languages/top/aswinnnn/pyscan)
+![CI](https://github.com/aswinnnn/pyscan/actions/workflows/CI.yml/badge.svg) [![PyPI license](https://img.shields.io/pypi/l/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/) [![GitHub issues](https://img.shields.io/github/issues/aswinnnn/pyscan.svg)](https://GitHub.com/aswinnnn/pyscan/issues/) [![Downloads](https://static.pepy.tech/personalized-badge/pyscan-rs?period=total&units=abbreviation&left_color=black&right_color=black&left_text=Downloads)](https://pepy.tech/project/pyscan-rs)  [![Top Language](https://img.shields.io/github/languages/top/aswinnnn/pyscan)](https://img.shields.io/github/languages/top/aswinnnn/pyscan)
 
 <h4 align="center"> 
 
