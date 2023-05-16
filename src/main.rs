@@ -12,22 +12,21 @@ use crate::utils::get_version;
 #[command(author="aswinnnn",version="0.1.0",about="python dependency vulnerability scanner.")]
 struct Cli {
 
-    /// if not provided it will search for files in the current directory.
+    /// path to source. if not provided it will use the current directory.
     #[arg(long,short,default_value=None,value_name="FILE")]
-    file: Option<PathBuf>,
+    dir: Option<PathBuf>,
 
-    /// scan subdirectories for python files.
-    /// [off by default]
-    #[arg(long, short, action=ArgAction::SetTrue)]
-    recursive: bool,
-
-    /// skip: skip the given sites
+    /// skip: skip the given databases
     /// ex. pyscan -s osv,snyk
-    #[arg(short, long, value_delimiter=',', value_name="VAL1,VAL2,VAL3...")]
+    /// hidden due to only having one database for now.
+    #[arg(short, long, value_delimiter=',', value_name="VAL1,VAL2,VAL3...", hide=true)]
     skip: Vec<String>
 
 }
 
+// cargo publish
+// pypi  publish
+// post reddit
 
 fn main() {
     let args = Cli::parse();
@@ -39,7 +38,7 @@ fn main() {
     // --- giving control to parser starts here ---
 
     // if a file  is provided
-    if let Some(dir) = args.file { parser::scan_dir(dir.as_path()) } 
+    if let Some(dir) = args.dir { parser::scan_dir(dir.as_path()) } 
 
     // if not, use cwd
     else if let Ok(dir) = env::current_dir() { parser::scan_dir(dir.as_path()) } 

@@ -1,9 +1,5 @@
 /// provides the functions needed to connect to various advisory sources.
 
-// curl -X POST -d \
-//   '{"version": "2.4.1",
-//   "package": {"name": "jinja2", "ecosystem": "PyPI"}}' \
-// "https://api.osv.dev/v1/query"
 use reqwest::{self, blocking::Client, Method};
 use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
 

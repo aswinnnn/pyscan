@@ -2,8 +2,15 @@
 name = "pyscan"
 version = "0.1.0"
 edition = "2021"
+authors = ["Aswin <aswinsnair@protonmail.com>"]
+license = "MIT"
+description = "Python dependency vulnerability scanner"
+readme = "README.md"
+homepage = "https://github.com/aswinnnn/pyscan"
+repository = "https://github.com/aswinnnn/pyscan"
+keywords = ["cli", "python", "security", "vulnerability", "pyo3", "scanner", "pip"]
+categories = ["command-line-utilities"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 chrono = "0.4.24"
@@ -16,6 +23,3 @@ reqwest = {version="0.11.16", features=["blocking"]}
 serde = {version="1.0.160", features=["derive", "serde_derive"]}
 serde_json = "1.0.96"
 toml = "0.7.3"
-
-[target.x86_64-pc-windows-gnu]
-rustflags = ["-C", "linker=gcc"]

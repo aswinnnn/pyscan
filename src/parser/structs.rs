@@ -1,9 +1,9 @@
 use std::{ffi::OsString};
 use super::scanner::models::Vulnerability;
 
-struct Python;
-struct Requirements;
-struct Pyproject;
+// struct Python;
+// struct Requirements;
+// struct Pyproject;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum FileTypes {
@@ -76,15 +76,3 @@ pub struct ScannedDependency {
     pub version: String,
     pub vuln: Vulnerability
 }
-
-// #[derive(Debug, Clone)]
-// pub struct Dependencies {
-//     pub deps: Vec<Dependency>,
-//     pub num: u64
-// }
-
-// impl Dependencies {
-//     pub fn convert(v: Vec<Dependency>) -> Dependencies {
-//         let cnt = 0;
-//     }
-// }

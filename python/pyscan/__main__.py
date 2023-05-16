@@ -9,7 +9,7 @@ def find_pyscan_bin() -> Path:
 
     pyscan_exe = "pyscan" + sysconfig.get_config_var("EXE")
 
-    path = Path(sysconfig.get_path("scripts")) / pyscan_exe
+    path = Path(sysconfig.get_path("bin")) / pyscan_exe
     if path.is_file():
         return path
 
@@ -22,7 +22,7 @@ def find_pyscan_bin() -> Path:
     else:
         user_scheme = "posix_user"
 
-    path = Path(sysconfig.get_path("scripts", scheme=user_scheme)) / pyscan_exe
+    path = Path(sysconfig.get_path("bin", scheme=user_scheme)) / pyscan_exe
     if path.is_file():
         return path
 
