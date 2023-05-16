@@ -26,7 +26,7 @@ jobs:
         target: [x86_64, x86, aarch64]
     steps:
       - name: install pkg-config and libssl
-        run:  sudo apt install pkg-config && git clone git://git.openssl.org/openssl.git && cd openssl && ./config --openssldir=/usr/local/ssl && make && make test && sudo make install && export OPENSSL_DIR="/usr/local/ssl" && git clone https://github.com/sfackler/rust-openssl && cd rust-openssl && cargo build
+        run:  sudo apt install pkg-config && git clone git://git.openssl.org/openssl.git && cd openssl && ./config --openssldir=/usr/local/ssl && export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig/ && export OPENSSL_LIB_DIR='/usr/lib/x86_64-linux-gnu' && make && make test && sudo make install && git clone https://github.com/sfackler/rust-openssl && cd rust-openssl && cargo build
       - uses: actions/checkout@v3
       - name: Build wheels
         uses: PyO3/maturin-action@v1
