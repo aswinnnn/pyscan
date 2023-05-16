@@ -1,6 +1,4 @@
-use std::fs;
-use chrono::{Datelike, Timelike, Utc};
-use  toml::Table;
+use chrono::{Timelike, Utc};
 
 pub fn get_time() -> String {
     // get the current time in a stting format i like.

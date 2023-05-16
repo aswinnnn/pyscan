@@ -3,7 +3,7 @@ use clap::Parser;
 mod utils;
 mod parser;
 mod scanner;
-use clap::ArgAction;
+
 use std::env;
 
 use crate::utils::get_version;
