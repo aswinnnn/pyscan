@@ -55,7 +55,8 @@ pub fn extract_imports_pyproject(f: String, imp: &mut Vec<Dependency>) {
     if let Ok(parsed) = parsed {
         let project = &parsed["project"];
         let deps = &project["dependencies"];
-        let deps = deps.as_array().unwrap();
+        let deps = deps.as_array()
+        .expect("Could not find the dependencies table in your pyproject.toml");
         for d in deps {
             let d = d.as_str().unwrap().to_string();
             imp.push(Dependency { name: d, version: None, comparator: None })

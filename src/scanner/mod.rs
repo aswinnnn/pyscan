@@ -1,5 +1,7 @@
-mod api;
+pub mod api;
 pub mod models;
+use std::process::exit;
+
 use crate::parser::structs::ScannedDependency;
 
 use super::parser::structs::Dependency;
@@ -17,12 +19,13 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
     let mut collected: Vec<ScannedDependency> = Vec::new();
 
     for mut d in imports {
-        if let Some(_ok) = d.version {
-            continue
+        // check if version was provided
+        d.version = if let Some(provided) = d.version {
+            Some(provided)
         }
         else {
-            d.version = osv.get_latest_package_version(d.name.clone());
-        }
+            osv.get_latest_package_version(d.name.clone())
+        };
         let mut depstr = format!("|-| {} [{}]", style(d.name.clone()).bold().bright().yellow(), style(d.version.clone().unwrap().to_string()).bold().dim());
         cons.write_line(&depstr)?;
 
@@ -48,29 +51,32 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
 
     // --- summary starts here ---
 
-    cons.write_line(&format!("{}", style("SUMMARY").bold().yellow().underlined()).to_string())?;
-    for v in collected {
-
-
-            for vuln in v.vuln.vulns {
-
-                let name = format!("Dependency: {}", style(v.name.clone()).bold().bright().red());
-                let id = format!("ID: {}",style(vuln.id).bold().bright().yellow());
-                let details = format!("Details: {}", style(vuln.details).italic());
-                // let summary = format!("summary: {}", vuln.summary);
-                let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![affected.versions.first().unwrap().to_string(), affected.versions.last().unwrap().to_string()]}).collect();
-                let version = format!("Versions affected: {} to {}", style(vers.first().expect("No version found affected").first().unwrap()).dim().underlined(), style(vers.last().expect("No version found affected").last().unwrap()).dim().underlined());
-                print!("\n");
-
-
-                cons.write_line(name.as_str())?;
-                cons.write_line(id.as_str())?;
-                cons.write_line(details.as_str())?;
-                cons.write_line(version.as_str())?;
-
+    if collected.len() != 0 {
+        cons.write_line(&format!("{}", style("SUMMARY").bold().yellow().underlined()).to_string())?;
+        for v in collected {
+    
+    
+                for vuln in v.vuln.vulns {
+    
+                    let name = format!("Dependency: {}", style(v.name.clone()).bold().bright().red());
+                    let id = format!("ID: {}",style(vuln.id).bold().bright().yellow());
+                    let details = format!("Details: {}", style(vuln.details).italic());
+                    // let summary = format!("summary: {}", vuln.summary);
+                    let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![affected.versions.first().unwrap().to_string(), affected.versions.last().unwrap().to_string()]}).collect();
+                    let version = format!("Versions affected: {} to {}", style(vers.first().expect("No version found affected").first().unwrap()).dim().underlined(), style(vers.last().expect("No version found affected").last().unwrap()).dim().underlined());
+                    print!("\n");
+    
+    
+                    cons.write_line(name.as_str())?;
+                    cons.write_line(id.as_str())?;
+                    cons.write_line(details.as_str())?;
+                    cons.write_line(version.as_str())?;
+    
+                }
+    
             }
-
-        }
+    }
+    else { exit(0)}
     
     Ok(())
 }
