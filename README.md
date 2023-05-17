@@ -61,7 +61,7 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 - [x] get it working.
 - [ ] add  tests.
 - [ ] more advisory databases.
-- [ ] query individual dependencies.
+- [x] query individual dependencies. [v0.1.1]
 - [ ] perfomance optimizations.
 
 ## 🐹 Sponsor
