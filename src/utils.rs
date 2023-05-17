@@ -15,5 +15,5 @@ pub fn get_time() -> String {
 }
 
 pub fn get_version() -> String {
-    "0.1.0".to_string()
+    "0.1.1".to_string()
 }

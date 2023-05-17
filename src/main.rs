@@ -9,7 +9,7 @@ use std::env;
 use crate::{utils::get_version, parser::structs::Dependency, scanner::api::Osv};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.0",about="python dependency vulnerability scanner.")]
+#[command(author="aswinnnn",version="0.1.1",about="python dependency vulnerability scanner.")]
 struct Cli {
 
     /// path to source. if not provided it will use the current directory.
