@@ -1,6 +1,0 @@
-lxml
-requests
-user-agent
-django
-jinja2 <= 2.4.1
-weheartpy

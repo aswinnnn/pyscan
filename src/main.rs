@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 mod utils;
 mod parser;
 mod scanner;
+mod docker;
 
 use std::env;
 
@@ -18,7 +19,11 @@ struct Cli {
 
     /// search for a single package, do "pyscan package --help" for more
     #[command(subcommand)]
-    package: Option<SubCommand>,
+    subcommand: Option<SubCommand>,
+    
+    // /// scan a docker image, do "pyscan docker --help" for more
+    // #[command(subcommand)]
+    // docker: Option<SubCommand>,
 
     /// skip: skip the given databases
     /// ex. pyscan -s osv,snyk
@@ -39,18 +44,34 @@ enum SubCommand {
         /// version of the package (if not provided, the latest stable will be used)
         #[arg(long, short, default_value=None)]
         version: Option<String>
+    },
+
+    /// scan a docker image
+    Docker {
+
+        /// name of the docker image
+        #[arg(long,short)]
+        name: String,
+
+        /// path inside your docker container to your project directory (usually just the name of folder where your Dockerfile was)
+        #[arg(long,short,value_name="DIRECTORY")]
+        path: PathBuf,
+        
+
     }
 }
 
 fn main() {
     let args = Cli::parse();
+    
+    println!("pyscan v{} | by Aswin (github.com/aswinnnn)", get_version());  
 
-    match args.package {
+    match args.subcommand {
         // subcommand package
 
         Some(SubCommand::Package { name, version }) => {
-            let osv = Osv::new().expect("Cannot access the API to get the latest package version.");
-            let version = if let Some(v) = version {v} else {osv.get_latest_package_version(name.clone())
+            // let osv = Osv::new().expect("Cannot access the API to get the latest package version.");
+            let version = if let Some(v) = version {v} else {utils::get_latest_package_version(name.clone())
             .expect("Error in retriving stable version from API")};
 
             let dep = Dependency {name: name, version: Some(version), comparator: None};
@@ -61,10 +82,16 @@ fn main() {
             exit(0)
 
         },
+        Some(SubCommand::Docker { name, path}) => {
+            let files = docker::list_files_in_docker_image(&name, path)
+            .expect("Error in listing files from Docker image.");
+            println!("{:#?}", files);
+            exit(0)
+        }
         None => ()
     }
 
-    println!("pyscan v{} | by Aswin (github.com/aswinnnn)", get_version());    
+  
     // println!("{:?}", args);
 
     // --- giving control to parser starts here ---
