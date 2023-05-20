@@ -2,7 +2,7 @@ pub mod api;
 pub mod models;
 use std::process::exit;
 
-use crate::parser::structs::ScannedDependency;
+use crate::{parser::structs::ScannedDependency, utils};
 
 use super::parser::structs::Dependency;
 use console::{Term, style};
@@ -24,7 +24,8 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
             Some(provided)
         }
         else {
-            osv.get_latest_package_version(d.name.clone())
+            // osv.get_latest_package_version(d.name.clone())
+            Some(utils::get_python_package_version(d.name.as_str()).expect("Could not retrive package version."))
         };
         let mut depstr = format!("|-| {} [{}]", style(d.name.clone()).bold().bright().yellow(), style(d.version.clone().unwrap().to_string()).bold().dim());
         cons.write_line(&depstr)?;

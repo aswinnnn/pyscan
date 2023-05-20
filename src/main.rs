@@ -83,9 +83,8 @@ fn main() {
 
         },
         Some(SubCommand::Docker { name, path}) => {
-            let files = docker::list_files_in_docker_image(&name, path)
-            .expect("Error in listing files from Docker image.");
-            println!("{:#?}", files);
+            let _files = docker::list_files_in_docker_image(&name, path)
+            .expect("Error in scanning files from Docker image.");
             exit(0)
         }
         None => ()

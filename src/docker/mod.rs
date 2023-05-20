@@ -1,5 +1,7 @@
 // Import the std::process module to use Command
-use std::{path::PathBuf, process::Command};
+use std::{path::{PathBuf, Path}, process::Command};
+
+use crate::parser::scan_dir;
 
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
@@ -17,7 +19,7 @@ impl std::fmt::Display for DockerError {
 
 // Define a function that takes a docker image name as a parameter
 // and returns a result of either a vector of filenames or a DockerError
-pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<Vec<String>, DockerError> {
+pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), DockerError> {
     // Create a Command object to run docker commands
     let mut cmd = Command::new("docker");
 
@@ -71,34 +73,36 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<Vec<Stri
         ));
     }
 
-    // Create another Command object to run shell commands
-    let mut cmd = Command::new("sh");
+    Ok(scan_dir(Path::new("./tmp/docker-files")))
 
-    // Use the "-c" argument to run a shell command that lists all files
-    // in the temporary directory and removes the directory prefix
-    cmd.arg("-c")
-        .arg(format!("cd ./tmp/docker-files/{} && ls -F", path.to_str().unwrap()));
+    // // Create another Command object to run shell commands
+    // let mut cmd = Command::new("sh");
 
-    // Execute the command and get the output
-    let output = cmd.output().map_err(|e| DockerError(e.to_string()))?;
+    // // Use the "-c" argument to run a shell command that lists all files
+    // // in the temporary directory and removes the directory prefix
+    // cmd.arg("-c")
+    //     .arg(format!("cd ./tmp/docker-files/{} && ls -F", path.to_str().unwrap()));
 
-    // Check if the command was successful
-    if !output.status.success() {
-        // Return an error with the command's stderr
-        return Err(DockerError(
-            String::from_utf8_lossy(&output.stderr).to_string(),
-        ));
-    }
+    // // Execute the command and get the output
+    // let output = cmd.output().map_err(|e| DockerError(e.to_string()))?;
 
-    // Get the filenames from the output as a vector of strings
-    let filenames = String::from_utf8(output.stdout)
-        .map_err(|e| DockerError(e.to_string()))?
-        .lines()
-        .map(|s| s.to_string())
-        .collect();
+    // // Check if the command was successful
+    // if !output.status.success() {
+    //     // Return an error with the command's stderr
+    //     return Err(DockerError(
+    //         String::from_utf8_lossy(&output.stderr).to_string(),
+    //     ));
+    // }
 
-    // Return the filenames vector as Ok value
-    Ok(filenames)
+    // // Get the filenames from the output as a vector of strings
+    // let filenames = String::from_utf8(output.stdout)
+    //     .map_err(|e| DockerError(e.to_string()))?
+    //     .lines()
+    //     .map(|s| s.to_string())
+    //     .collect();
+
+    // // Return the filenames vector as Ok value
+    // Ok(filenames)
 }
 
 fn create_tmp_folder(path: &str) -> std::io::Result<()> {

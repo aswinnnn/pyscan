@@ -64,7 +64,3 @@ pub fn extract_imports_pyproject(f: String, imp: &mut Vec<Dependency>) {
         }
     }
 }
-
-// Dependency { name: "requests", extras: [], spec: Some(Version([VersionSpec { comparator: Ge, version: "2.0.8" }])), marker: None }
-// Dependency { name: "lxml", extras: [], spec: None, marker: None }
-// Dependency { name: "gay", extras: [], spec: None, marker: None }

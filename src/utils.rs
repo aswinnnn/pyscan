@@ -104,3 +104,38 @@ pub fn get_latest_package_version(name: String) -> Option<String> {
         None
     }
 }
+
+use std::process::Command;
+// Define a custom error type that wraps a String message
+#[derive(Debug)]
+pub struct PipError(String);
+
+// Implement the std::error::Error trait for DockerError
+impl std::error::Error for PipError {}
+
+// Implement the std::fmt::Display trait for DockerError
+impl std::fmt::Display for PipError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Pip error: {}", self.0)
+    }
+}
+
+pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
+    
+    let output = Command::new("pip")
+        .arg("show")
+        .arg(package)
+        .output().map_err(|e| {PipError(e.to_string())})?;
+
+    let output = output.stdout;
+    let output = String::from_utf8(output)
+    .map_err(|e| {PipError(e.to_string())})?;
+
+    let version = output
+        .lines()
+        .find(|line| line.starts_with("Version: "))
+        .map(|line| line[9..].to_string());
+    
+    if let Some(v) = version { Ok(v)} 
+    else { Err(PipError("could not retrive package version from Pip".to_string())) }
+}
