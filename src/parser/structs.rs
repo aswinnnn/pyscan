@@ -5,7 +5,7 @@ use super::scanner::models::Vulnerability;
 // struct Requirements;
 // struct Pyproject;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FileTypes {
     Python,
     Requirements,

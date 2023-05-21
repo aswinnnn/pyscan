@@ -45,19 +45,13 @@ impl Osv {
         // returns None if no vulns found
         // else Some(Vulnerability)
 
-        let version = if d.version != None {d.version} else {self.get_latest_package_version(d.name.clone())};
+        let version = if d.version.is_some() {d.version} else {self.get_latest_package_version(d.name.clone())};
         // println!("{:?}", self.get_latest_package_version(d.name.clone()));
 
         let res = self.get_json(d.name.as_str(), &version.unwrap());
         // println!("{:?}", res);
 
-        if let Some(v) = res {
-            // println!("{:?}", v);
-            Some(v)
-        }
-        else {
-            None
-        }
+        res
 
     }
 
@@ -75,7 +69,7 @@ impl Osv {
         if let Ok(response) = res {
             if response.status().is_client_error() {eprintln!("Failed connecting to OSV. [Client error]")} else if response.status().is_server_error() {eprintln!("Failed connecting to OSV. [Server error]")}
             let restext = response.text().unwrap();
-            if restext.clone().len() > 3 {}
+            if restext.len() > 3 {}
             // check if vulns exist by char len of json
             // api returns '{}' if none found so this is easy
 
@@ -96,7 +90,7 @@ impl Osv {
 
     }
     pub fn get_latest_package_version(&self, n: String) -> Option<String> {
-        let url = format!("https://api.deps.dev/v3alpha/systems/pypi/packages/{}", n.clone());
+        let url = format!("https://api.deps.dev/v3alpha/systems/pypi/packages/{}", n);
         // gets the latest released version of a package from pypi.
     
         let res = self.client.get(url).send();
@@ -115,17 +109,17 @@ impl Osv {
                     Some(s)
                 }
                 else {
-                    eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", n.clone());
+                    eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", n);
                     None
                 }
             }
             else {
-                eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", n.clone());
+                eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", n);
                 None
             }
         }
         else {
-            eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", n.clone());
+            eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", n);
             None
         }
 

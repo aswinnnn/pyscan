@@ -73,7 +73,9 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
         ));
     }
 
-    Ok(scan_dir(Path::new("./tmp/docker-files")))
+    scan_dir(Path::new("./tmp/docker-files"));
+    cleanup().map_err(|e| DockerError(e.to_string()) )?;
+    Ok(())
 
     // // Create another Command object to run shell commands
     // let mut cmd = Command::new("sh");
@@ -109,4 +111,8 @@ fn create_tmp_folder(path: &str) -> std::io::Result<()> {
     let tmp_path = format!("{}/tmp/docker-files", path);
     std::fs::create_dir_all(&tmp_path)?;
     Ok(())
+}
+
+fn cleanup() -> Result<(), std::io::Error> {
+    std::fs::remove_dir("./tmp/docker-files")
 }

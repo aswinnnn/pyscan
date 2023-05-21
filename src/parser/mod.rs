@@ -30,7 +30,7 @@ pub fn scan_dir(dir: &Path) {
                     result.python();
                 }
                 // requirements.txt
-                else if OsString::from("requirements.txt") == filename.clone() {
+                else if *"requirements.txt" == filename.clone() {
                     result.add(FoundFile {
                         name: filename,
                         filetype: FileTypes::Requirements,
@@ -39,7 +39,7 @@ pub fn scan_dir(dir: &Path) {
                     result.reqs();
                 }
                 // pyproject.toml
-                else if OsString::from("pyproject.toml") == filename.clone() {
+                else if *"pyproject.toml" == filename.clone() {
                     result.add(FoundFile {
                         name: filename,
                         filetype: FileTypes::Pyproject,
@@ -74,14 +74,12 @@ fn find_import(res: FoundFileResult) {
         // use pyproject instead (if it exists)
         find_pyproject_imports(&files)
     }
+    else if res.py_found != 0 {
+        // make sure theres atleast one python file, then use that
+        find_python_imports(&files)
+    }
     else {
-        if res.py_found != 0 {
-            // make sure theres atleast one python file, then use that
-            find_python_imports(&files)
-        }
-        else {
-            eprintln!("Could not find any requirements.txt, pyproject.toml or python files in this directory");
-        }
+        eprintln!("Could not find any requirements.txt, pyproject.toml or python files in this directory");
     }
 }
 

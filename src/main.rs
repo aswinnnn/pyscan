@@ -1,5 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
+use console::style;
 mod utils;
 mod parser;
 mod scanner;
@@ -7,7 +8,7 @@ mod docker;
 
 use std::env;
 
-use crate::{utils::get_version, parser::structs::Dependency, scanner::api::Osv};
+use crate::{utils::get_version, parser::structs::Dependency};
 
 #[derive(Parser, Debug)]
 #[command(author="aswinnnn",version="0.1.1",about="python dependency vulnerability scanner.")]
@@ -53,7 +54,7 @@ enum SubCommand {
         #[arg(long,short)]
         name: String,
 
-        /// path inside your docker container to your project directory (usually just the name of folder where your Dockerfile was)
+        /// path inside your docker container where requirements.txt is, or just the folder name where your Dockerfile (along with requirements.txt) is.
         #[arg(long,short,value_name="DIRECTORY")]
         path: PathBuf,
         
@@ -74,7 +75,7 @@ fn main() {
             let version = if let Some(v) = version {v} else {utils::get_latest_package_version(name.clone())
             .expect("Error in retriving stable version from API")};
 
-            let dep = Dependency {name: name, version: Some(version), comparator: None};
+            let dep = Dependency {name, version: Some(version), comparator: None};
             // start() from scanner only accepts Vec<Dependency> so
             let vdep = vec![dep];
 
@@ -83,7 +84,13 @@ fn main() {
 
         },
         Some(SubCommand::Docker { name, path}) => {
-            let _files = docker::list_files_in_docker_image(&name, path)
+            println!("{} {}\n{} {}",style("Docker image:").yellow().blink(),
+            style(name.clone()).bold().green(),
+            style("Path inside container:").yellow().blink(), 
+            style(path.to_string_lossy()).bold().green());
+            println!("{}", 
+        style("--- Make sure you run the command with elevated permissions (sudo/administrator) as pyscan might have trouble accessing files inside docker containers ---").dim());
+            docker::list_files_in_docker_image(&name, path)
             .expect("Error in scanning files from Docker image.");
             exit(0)
         }

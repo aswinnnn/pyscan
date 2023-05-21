@@ -52,20 +52,27 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
 
     // --- summary starts here ---
 
-    if collected.len() != 0 {
-        cons.write_line(&format!("{}", style("SUMMARY").bold().yellow().underlined()).to_string())?;
+    if !collected.is_empty() {
+        cons.write_line(&format!("{}", style("SUMMARY").bold().yellow().underlined()))?;
         for v in collected {
     
     
                 for vuln in v.vuln.vulns {
-    
+                    // DEPENDENCY    
                     let name = format!("Dependency: {}", style(v.name.clone()).bold().bright().red());
+
+                    // ID
                     let id = format!("ID: {}",style(vuln.id).bold().bright().yellow());
+
+                    // DETAILS
                     let details = format!("Details: {}", style(vuln.details).italic());
-                    // let summary = format!("summary: {}", vuln.summary);
+
+                    // VERSIONS AFFECTED from ... to
                     let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![affected.versions.first().unwrap().to_string(), affected.versions.last().unwrap().to_string()]}).collect();
+
                     let version = format!("Versions affected: {} to {}", style(vers.first().expect("No version found affected").first().unwrap()).dim().underlined(), style(vers.last().expect("No version found affected").last().unwrap()).dim().underlined());
-                    print!("\n");
+
+                    println!();
     
     
                     cons.write_line(name.as_str())?;
@@ -83,28 +90,3 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
 }
 
 
-// more rigourous version checking against the input might be needed in the future
-// function commented out due to being experimental
-// fn version_check(against: ScannedDependency) -> bool {
-//     // Check input version against the affected versions
-//     // from OSV. Would osv return a vuln that doesnt have our version? idk
-//     // but im not gonna fear-monger the user. Lets make sure. 
-//     let mut check = false;
-//     let vulns = against.vuln.vulns;
-//     let ver = against.version;
-
-//     for vuln in vulns {
-//         let multi_affected = vuln.affected.iter().map(|x| {x.clone().versions}); // multi-dimensional array of versions
-//         let pre_single_affected: Vec<Vec<String>> = multi_affected.map(|v| {v}).collect(); // processing it
-//         let single_affected: Vec<String> = pre_single_affected.iter().map(|x| {x.to_owned().drain(..x.len()).collect()}).collect(); // yay single array of versions
-
-//         for a in single_affected {
-//             if ver == a {
-//                 check = true
-//             }
-//             else {continue}
-//         }
-//     }
-
-//     check
-// }

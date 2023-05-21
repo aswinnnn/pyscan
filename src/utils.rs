@@ -1,8 +1,8 @@
-use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
+
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,
-    blocking::{Client, Response},
+    blocking::{Response},
     Method,
 };
 use crate::scanner::models::Pypi;
@@ -65,7 +65,7 @@ pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
 pub fn get_latest_package_version(name: String) -> Option<String> {
     let url = format!(
         "https://api.deps.dev/v3alpha/systems/pypi/packages/{}",
-        name.clone()
+        name
     );
     // gets the latest released version of a package from pypi.
 
@@ -92,15 +92,15 @@ pub fn get_latest_package_version(name: String) -> Option<String> {
                     .version;
                 Some(s)
             } else {
-                eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", name.clone());
+                eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", name);
                 None
             }
         } else {
-            eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", name.clone());
+            eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", name);
             None
         }
     } else {
-        eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", name.clone());
+        eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", name);
         None
     }
 }
