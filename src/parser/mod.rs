@@ -1,7 +1,5 @@
 use std::io::{BufReader, BufRead};
 use std::{ffi::OsString, fs::File};
-/// ^\s*(?:from|import)\s+(\w+(?:\s*,\s*\w+)*)
-/// regex used to match imports from python filesr
 use std::fs;
 use std::path::Path;
 pub mod structs;

@@ -1,3 +1,8 @@
+/// for the parser module, extractor.rs is the backbone of all parsing
+/// it takes a String and a mutable reference to a Vec<Dependency>.
+/// String is the contents of a source file, while the mut ref vector will
+/// be used to collect the dependencies that we have extracted from the contents.
+
 use lazy_static::lazy_static;
 use regex::Regex;
 use pep_508::{self, Spec};
