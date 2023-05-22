@@ -50,6 +50,7 @@ Pyscan can scan inside docker images given you provide the correct path inside. 
 ```
 
 by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python files.
+Note: Your docker engine/daemon should be running as pyscan utilizes the `docker create` command. 
 
 <br>
 Here's the order of precedence for a "source" file:

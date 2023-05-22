@@ -57,7 +57,7 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
     cmd.arg("cp")
         .arg(format!(
             "{}:/{}",
-            container_id,
+            container_id.clone(),
             path.to_str().expect("Path contains non-unicode characters")
         ))
         .arg("./tmp/docker-files");
@@ -75,7 +75,24 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
 
     scan_dir(Path::new("./tmp/docker-files"));
     cleanup().map_err(|e| DockerError(e.to_string()) )?;
+
+    // docker stop
+    let mut cmd = Command::new("docker");
+    cmd.arg("stop")
+        .arg(container_id.clone());
+
+    // Execute the command and get the output
+    let _output = cmd.output().map_err(|e| DockerError(e.to_string()))?;
+
+    // docker remove
+    let mut cmd = Command::new("docker");
+    cmd.arg("rm")
+        .arg(container_id);
+
+    // Execute the command and get the output
+    let _output = cmd.output().map_err(|e| DockerError(e.to_string()))?;
     Ok(())
+   
 
     // // Create another Command object to run shell commands
     // let mut cmd = Command::new("sh");
@@ -114,5 +131,5 @@ fn create_tmp_folder(path: &str) -> std::io::Result<()> {
 }
 
 fn cleanup() -> Result<(), std::io::Error> {
-    std::fs::remove_dir("./tmp/docker-files")
+    std::fs::remove_dir_all("./tmp/docker-files")
 }
