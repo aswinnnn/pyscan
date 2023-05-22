@@ -35,3 +35,8 @@ by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python fi
 - - make it easier for other tools to interact with pyscan
 - - code complexity analyzer (not doing a linter cuz any respectable python dev already has one)
 - - finally get to do tests, and lots of more ideas in my head. Thanks for the awesome support so far!
+
+## 0.1.3
+
+- Fixed a grave error where docker command left remnants and did not perform a complete cleanup.
+- This release was made right after the previous release to fix this feature, however, the release page will contain both this message and the previous one so no one will miss out on the new stuff.
