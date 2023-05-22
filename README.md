@@ -11,7 +11,7 @@
 <h5 align="center"> <i>A dependency vulnerability scanner for your python projects, straight from the terminal.</i> </h5>
 
 + 🚀 blazingly fast scanner that can be used within large projects quickly.
-+ 🤖 automatically uses `requirements.txt`, `pyproject.toml` or, the source code (highly discouraged)
++ 🤖 automatically uses `requirements.txt`, `pyproject.toml` or, the source code.
 + 🧑‍💻 can be integrated into existing build processes.
 + 💽 In its alpha stage, some features may not work correctly. PRs and issue makers welcome.
 
@@ -78,4 +78,4 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 ## 🐹 Sponsor
 
-While not coding, I am a broke high school student with nothing else to do. I appreciate all the help I'm worthy of.
+While not coding, I am a broke high school student with nothing else to do. I appreciate all the help I can get.
