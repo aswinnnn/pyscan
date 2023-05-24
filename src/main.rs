@@ -60,6 +60,14 @@ enum SubCommand {
         path: PathBuf,
         
 
+    },
+
+    /// check code complexity.
+    Health {
+
+        /// specific python file to look at. If not provided, scans the current directory for all python files.
+        #[arg(long,short, default_value=None)]
+        file: Option<PathBuf>
     }
 }
 
@@ -98,6 +106,16 @@ fn main() {
             docker::list_files_in_docker_image(&name, path)
             .expect("Error in scanning files from Docker image.");
             exit(0)
+        },
+        Some(SubCommand::Health { file }) => {
+
+            // subcommand health
+
+            if file.is_none() {
+                if let Ok(dir) = env::current_dir() {  }
+                // send to scan all python files in the dir then to health::start
+
+            }
         }
         None => ()
     }
