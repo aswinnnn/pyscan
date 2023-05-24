@@ -8,14 +8,14 @@ use super::parser::structs::Dependency;
 use console::{Term, style};
 
 pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
-    let cons = Term::stdout();
-    let s = format!("Found {} dependencies...", style(format!("{}", imports.len()))
-    .bold()
-    .green());
+    
+    let cons = Term::stdout(); // output to stdout
+
+    let s = if imports.len() > 1 {format!("Found {} dependencies...", style(format!("{}", imports.len())).bold().green())} else {String::new()}; // incase only 1 dependency is given (package subcommand)
 
     cons.write_line(&s)?;
 
-    let osv = api::Osv::new().unwrap(); // err handling done inside, unwrapping is safe
+    let osv = api::Osv::new().expect("Error in retriving connection from OSV.");
     let mut collected: Vec<ScannedDependency> = Vec::new();
 
     for mut d in imports {
@@ -83,10 +83,9 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
                 }
     
             }
+        exit(1);
     }
     else { exit(0)}
-    
-    Ok(())
 }
 
 

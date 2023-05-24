@@ -1,17 +1,18 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use console::style;
+use console::{Term, style};
 mod utils;
 mod parser;
 mod scanner;
 mod docker;
+mod health;
 
 use std::env;
 
 use crate::{utils::get_version, parser::structs::Dependency};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.1",about="python dependency vulnerability scanner.")]
+#[command(author="aswinnnn",version="0.1.4",about="python dependency vulnerability scanner.")]
 struct Cli {
 
     /// path to source. if not provided it will use the current directory.
@@ -64,6 +65,8 @@ enum SubCommand {
 
 fn main() {
     let args = Cli::parse();
+    let cons = Term::stdout();
+    cons.set_title("pyscan");
     
     println!("pyscan v{} | by Aswin (github.com/aswinnnn)", get_version());  
 
@@ -71,7 +74,6 @@ fn main() {
         // subcommand package
 
         Some(SubCommand::Package { name, version }) => {
-            // let osv = Osv::new().expect("Cannot access the API to get the latest package version.");
             let version = if let Some(v) = version {v} else {utils::get_latest_package_version(name.clone())
             .expect("Error in retriving stable version from API")};
 
@@ -84,6 +86,9 @@ fn main() {
 
         },
         Some(SubCommand::Docker { name, path}) => {
+
+            // subcommand docker
+
             println!("{} {}\n{} {}",style("Docker image:").yellow().blink(),
             style(name.clone()).bold().green(),
             style("Path inside container:").yellow().blink(), 
