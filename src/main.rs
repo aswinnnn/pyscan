@@ -62,12 +62,16 @@ enum SubCommand {
 
     },
 
-    /// check code complexity.
+    /// scan code complexity.
     Health {
 
         /// specific python file to look at. If not provided, scans the current directory for all python files.
         #[arg(long,short, default_value=None)]
-        file: Option<PathBuf>
+        file: Option<PathBuf>,
+
+        /// specific directory to scan. If not provided, scans the current directory.
+        #[arg(long,short, default_value=None)]
+        dir: Option<PathBuf>
     }
 }
 
@@ -107,16 +111,27 @@ fn main() {
             .expect("Error in scanning files from Docker image.");
             exit(0)
         },
-        Some(SubCommand::Health { file }) => {
+        Some(SubCommand::Health { file , dir}) => {
 
             // subcommand health
 
-            if file.is_none() {
-                if let Ok(dir) = env::current_dir() {  }
-                // send to scan all python files in the dir then to health::start
-
+            if dir.is_some() {
+                // check if a dir is provided
+                health::start(&dir.unwrap());
             }
-        }
+            else if file.is_some() {
+                // check wether a file is given
+                health::start(&file.unwrap());
+            }
+            // else, use cwd
+            else {
+                if let Ok(dir) = env::current_dir() {
+                    let  res = utils::scan_dir_for_x_files(".py", dir).expect("Error scanning for python files...");
+                    for path in res { health::start(&path) };
+                }
+            }
+            
+        },
         None => ()
     }
 

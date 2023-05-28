@@ -139,3 +139,28 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
     if let Some(v) = version { Ok(v)} 
     else { Err(PipError("could not retrive package version from Pip".to_string())) }
 }
+
+use std::fs;
+use std::io;
+use std::path::PathBuf;
+
+/// This function takes a directory path as an argument and returns a vector of paths of all the {extension matching} files in that directory.
+/// If the directory does not exist or is not readable, it returns an error.
+pub fn scan_dir_for_x_files(extension: &str,dir: PathBuf) -> io::Result<Vec<PathBuf>> {
+    // Try to read the directory entries
+    let entries = fs::read_dir(dir)?;
+    // Filter and map the entries to get the paths of 'x' files
+    let paths = entries
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| {
+            let path = entry.path();
+            if path.is_file() && path.extension() == Some(extension.as_ref()) {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect();
+    
+    Ok(paths)
+}

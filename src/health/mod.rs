@@ -1,12 +1,14 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::fs; 
 use std::io::Read;
 mod parser;
 mod mccabe;
+use console::style;
 
-pub fn start(path: &Path) {
+pub fn start(path: &PathBuf) {
+    println!("--> {}", style(path.clone().to_string_lossy()).bold().underlined());
 
-    let source_code = open_python_file(path).expect("Error opening python file");
+    let source_code = fs::read_to_string(path).expect("Error reading file");
     // return a HashMap<function_name, function>
     let parsed = parser::parse_python_code(source_code.as_str());
 
@@ -15,21 +17,4 @@ pub fn start(path: &Path) {
         println!("{} : {}", funname, res);
 
     }
-}
-
-
-fn open_python_file<P: AsRef<Path>>(path: P) -> std::io::Result<String> {
-    // use the File::open method to try to open the file in read-only mode
-    // if the file does not exist or cannot be opened, return an error
-    let mut file = fs::File::open(path)?;
-
-    // create a mutable String variable to store the file contents
-    let mut contents = String::new();
-
-    // use the read_to_string method to read the file contents into the String variable
-    // if the file cannot be read, return an error
-    file.read_to_string(&mut contents)?;
-
-    // return Ok with a reference to the String variable as a &str value
-    Ok(contents)
 }
