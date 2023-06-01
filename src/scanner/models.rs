@@ -143,45 +143,4 @@ pub struct Severity {
     pub score: String,
 }
 
-// pypi API models (well not really but its for finding the latest stable version of a package.)
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Pypi {
-    #[serde(rename = "packageKey")]
-    pub package_key: Option<PackageKey>,
-
-    #[serde(rename = "versions")]
-    pub versions: Option<Vec<Version>>
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PackageKey {
-    #[serde(rename = "system")]
-    pub system: String,
-
-    #[serde(rename = "name")]
-    pub name: String
-    // modify with the schema
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Version {
-    #[serde(rename = "versionKey")]
-    pub version_key: Option<VersionKey>,
-
-    #[serde(rename = "isDefault")]
-    pub is_default: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VersionKey {
-    #[serde(rename = "system")]
-    pub system: String,
-
-    #[serde(rename = "name")]
-    pub name: String,
-
-    #[serde(rename = "version")]
-    pub version: String
-}
 

@@ -89,40 +89,5 @@ impl Osv {
 
 
     }
-    pub fn get_latest_package_version(&self, n: String) -> Option<String> {
-        let url = format!("https://api.deps.dev/v3alpha/systems/pypi/packages/{}", n);
-        // gets the latest released version of a package from pypi.
-    
-        let res = self.client.get(url).send();
-
-        // println!("{:?}", res.unwrap().text());
-        // Some("l".to_string())
-
-        if let Ok(response) = res {
-            let parsed: Result<Pypi, serde_json::Error> = serde_json::from_str(response.text().unwrap().as_str());
-
-            if let Ok(pypi) = parsed {
-                // println!("{:?}", pypi);
-                // Some("()".to_string())
-                if let Some(v) = pypi.versions.iter().last().cloned() {
-                    let s = v.iter().last().unwrap().to_owned().version_key.unwrap().version;
-                    Some(s)
-                }
-                else {
-                    eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", n);
-                    None
-                }
-            }
-            else {
-                eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", n);
-                None
-            }
-        }
-        else {
-            eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", n);
-            None
-        }
-
-    }
 }
 

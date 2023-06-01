@@ -62,49 +62,6 @@ pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
     }
 }
 
-pub fn get_latest_package_version(name: String) -> Option<String> {
-    let url = format!(
-        "https://api.deps.dev/v3alpha/systems/pypi/packages/{}",
-        name
-    );
-    // gets the latest released version of a package from pypi.
-
-    let res = reqwest_send("get", url);
-
-    // println!("{:?}", res.unwrap().text());
-    // Some("l".to_string())
-
-    if let Some(response) = res {
-        let parsed: Result<Pypi, serde_json::Error> =
-            serde_json::from_str(response.text().unwrap().as_str());
-
-        if let Ok(pypi) = parsed {
-            // println!("{:?}", pypi);
-            // Some("()".to_string())
-            if let Some(v) = pypi.versions.iter().last().cloned() {
-                let s = v
-                    .iter()
-                    .last()
-                    .unwrap()
-                    .to_owned()
-                    .version_key
-                    .unwrap()
-                    .version;
-                Some(s)
-            } else {
-                eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", name);
-                None
-            }
-        } else {
-            eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", name);
-            None
-        }
-    } else {
-        eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", name);
-        None
-    }
-}
-
 use std::process::Command;
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
@@ -139,3 +96,4 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
     if let Some(v) = version { Ok(v)} 
     else { Err(PipError("could not retrive package version from Pip".to_string())) }
 }
+
