@@ -9,7 +9,8 @@ use super::scanner::models::Vulnerability;
 pub enum FileTypes {
     Python,
     Requirements,
-    Pyproject
+    Pyproject,
+    Constraints
 }
 
 #[derive(Debug, Clone)]
@@ -37,7 +38,8 @@ pub struct FoundFileResult {
     pub files: Vec<FoundFile>,
     pub py_found: u64, // no. of said files found
     pub reqs_found: u64,
-    pub pyproject_found: u64
+    pub pyproject_found: u64,
+    pub constraints_found: u64
 }
 
 impl FoundFileResult {
@@ -46,7 +48,8 @@ impl FoundFileResult {
             files: Vec::new(),
             py_found: 0,
             reqs_found: 0,
-            pyproject_found: 0
+            pyproject_found: 0,
+            constraints_found: 0
         }
     }
     pub fn add(&mut self, f: FoundFile) {
@@ -60,6 +63,9 @@ impl FoundFileResult {
     }
     pub fn pyproject(&mut self) {
         self.pyproject_found += 1
+    }
+    pub fn constraints(&mut self) {
+        self.constraints_found += 1
     }
 }
 
