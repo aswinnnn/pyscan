@@ -149,20 +149,20 @@ pub struct Severity {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PypiResponse {
-    #[serde(rename = "info")]
-    pub info: Info,
+    // #[serde(rename = "info")]
+    // pub info: Info,
 
-    #[serde(rename = "last_serial")]
-    pub last_serial: i64,
+    // #[serde(rename = "last_serial")]
+    // pub last_serial: i64,
 
     #[serde(rename = "releases")]
-    pub releases: HashMap<String, Vec<Url>>,
+    pub releases: HashMap<String, Option<Vec<Url>>>,
 
-    #[serde(rename = "urls")]
-    pub urls: Vec<Url>,
+    // #[serde(rename = "urls")]
+    // pub urls: Vec<Url>,
 
-    #[serde(rename = "vulnerabilities")]
-    pub vulnerabilities: Vec<Option<serde_json::Value>>,
+    // #[serde(rename = "vulnerabilities")]
+    // pub vulnerabilities: Vec<Option<serde_json::Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -269,50 +269,50 @@ pub struct ProjectUrls {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Url {
-    #[serde(rename = "comment_text")]
-    pub comment_text: Option<serde_json::Value>,
+    // #[serde(rename = "comment_text")]
+    // pub comment_text: Option<serde_json::Value>,
 
     #[serde(rename = "digests")]
-    pub digests: Digests,
+    pub digests: Option<Digests>,
 
     #[serde(rename = "downloads")]
-    pub downloads: i64,
+    pub downloads: Option<i64>,
 
     #[serde(rename = "filename")]
-    pub filename: String,
+    pub filename: Option<String>,
 
     #[serde(rename = "has_sig")]
-    pub has_sig: bool,
+    pub has_sig: Option<bool>,
 
     #[serde(rename = "md5_digest")]
-    pub md5_digest: String,
+    pub md5_digest: Option<String>,
 
     #[serde(rename = "packagetype")]
-    pub packagetype: String,
+    pub packagetype: Option<String>,
 
     #[serde(rename = "python_version")]
-    pub python_version: String,
+    pub python_version: Option<String>,
 
     #[serde(rename = "requires_python")]
-    pub requires_python: String,
+    pub requires_python: Option<String>,
 
     #[serde(rename = "size")]
-    pub size: i64,
+    pub size: Option<i64>,
 
     #[serde(rename = "upload_time")]
-    pub upload_time: String,
+    pub upload_time: Option<String>,
 
     #[serde(rename = "upload_time_iso_8601")]
-    pub upload_time_iso_8601: String,
+    pub upload_time_iso_8601: Option<String>,
 
     #[serde(rename = "url")]
-    pub url: String,
+    pub url: Option<String>,
 
     #[serde(rename = "yanked")]
-    pub yanked: bool,
+    pub yanked: Option<bool>,
 
-    #[serde(rename = "yanked_reason")]
-    pub yanked_reason: Option<serde_json::Value>,
+    // #[serde(rename = "yanked_reason")]
+    // pub yanked_reason: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

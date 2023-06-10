@@ -1,5 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
+use clap;
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
 use console::style;
@@ -41,12 +42,12 @@ struct Cli {
     show: Vec<String>,
 
     /// Uses pip to retrieve versions. if not provided it will use the source, falling back on pip if not, pypi.org.
-    #[arg(long, required=false, action, num_args=0..=1)]
-    pip: Option<bool>,
+    #[arg(long, required=false, action=clap::ArgAction::SetTrue)]
+    pip: bool,
 
     /// Same as --pip except uses pypi.org to retrieve the latest version for the packages. 
-    #[arg(long, required=false, action, num_args=0..=1)]
-    pypi: Option<bool>
+    #[arg(long, required=false,action=clap::ArgAction::SetTrue)]
+    pypi: bool
     
 }
 

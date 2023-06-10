@@ -80,7 +80,7 @@ impl std::fmt::Display for PipError {
 }
 
 pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
-    /// gets the version of a package from pip.
+    // gets the version of a package from pip.
     
     let output = Command::new("pip")
         .arg("show")
@@ -131,21 +131,23 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
     else if let Ok(r) = res {
         let restext = r.text();
         let restext = if let Ok(r) = restext {r} else {eprintln!("Failed to connect to pypi.org"); exit(1)};
+        // println!("{:#?}", restext.clone());
 
-        let parsed: Result<PypiResponse, serde_json::Error> = serde_json::from_str(&restext);
+        let parsed: Result<PypiResponse, serde_json::Error> = serde_json::from_str(&restext.trim());
 
         let version = if let Err(e) = parsed {
             eprintln!("Failed to parse reponse from pypi.org:\n{}", e); Err(PypiError(e.to_string()))
         }
         else if let Ok(pypi) = parsed {
-            let version: Vec<String> = pypi.releases.into_keys().collect();
-            Ok(version.last().unwrap().to_string())
+            let mut version: Vec<String> = pypi.releases.into_keys().collect();
+            version.sort();
+            Ok(version.last().unwrap().to_owned())
         }
         else {Err(PypiError("pypi.org response error".to_string()))};
         version
 
     }
     else {exit(1)};
-    Ok(Box::new(version.unwrap()))
+    Ok(Box::new(if let Err(e) = version {eprintln!("{e}"); exit(1)} else {version.unwrap()}))
 }
 

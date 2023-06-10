@@ -1,4 +1,8 @@
-use std::{ffi::OsString};
+use console::style;
+use std::{ffi::OsString, process::exit};
+
+use crate::{utils, ARGS};
+
 use super::scanner::models::Vulnerability;
 
 // struct Python;
@@ -10,14 +14,14 @@ pub enum FileTypes {
     Python,
     Requirements,
     Pyproject,
-    Constraints
+    Constraints,
 }
 
 #[derive(Debug, Clone)]
 pub struct FoundFile {
     pub name: OsString,
     pub filetype: FileTypes,
-    pub path: OsString
+    pub path: OsString,
 }
 
 impl FoundFile {
@@ -39,7 +43,7 @@ pub struct FoundFileResult {
     pub py_found: u64, // no. of said files found
     pub reqs_found: u64,
     pub pyproject_found: u64,
-    pub constraints_found: u64
+    pub constraints_found: u64,
 }
 
 impl FoundFileResult {
@@ -49,7 +53,7 @@ impl FoundFileResult {
             py_found: 0,
             reqs_found: 0,
             pyproject_found: 0,
-            constraints_found: 0
+            constraints_found: 0,
         }
     }
     pub fn add(&mut self, f: FoundFile) {
@@ -74,21 +78,97 @@ pub struct Dependency {
     pub name: String,
     pub version: Option<String>,
     pub comparator: Option<pep_508::Comparator>,
-    pub version_status: VersionStatus
+    pub version_status: VersionStatus,
 }
 
 #[derive(Debug, Clone)]
 pub struct VersionStatus {
     // pyscan may get version info from a lot of places. This keeps it in check.
-
     pub pypi: bool,
     pub pip: bool,
     pub source: bool,
-} 
+}
+
+/// implementation for VersionStatus which can get return versions while updating the status, also pick the one decided via arguments, a nice abstraction really.
+impl VersionStatus {
+    /// retreives versions from pip and pypi.org in (pip, pypi) format.
+    pub fn full_check(&mut self, name: &str) -> (String, String) {
+        let pip = utils::get_python_package_version(name);
+        let pip_v = if let Err(e) = pip {
+            println!("An error occurred while retrieving version info from pip.\n{e}");
+            exit(1)
+        } else {
+            pip.unwrap()
+        };
+
+        let pypi = utils::get_package_version_pypi(name);
+        let pypi_v = if let Err(e) = pypi {
+            println!("An error occurred while retrieving version info from pypi.org.\n{e}");
+            exit(1)
+        } else {
+            *pypi.unwrap()
+        };
+
+        self.pip = true;
+        self.pypi = true;
+
+        (pip_v, pypi_v)
+    }
+
+    pub fn pip(name: &str) -> String {
+        let pip = utils::get_python_package_version(name);
+        let pip_v = if let Err(e) = pip {
+            println!("An error occurred while retrieving version info from pip.\n{e}");
+            exit(1)
+        } else {
+            pip.unwrap()
+        };
+
+        pip_v
+    }
+
+    pub fn pypi(name: &str) -> String {
+        let pypi = utils::get_package_version_pypi(name);
+        let pypi_v = if let Err(e) = pypi {
+            println!("An error occurred while retrieving version info from pypi.org.\n{e}");
+            exit(1)
+        } else {
+            *pypi.unwrap()
+        };
+
+        pypi_v
+    }
+
+    /// returns the chosen version (from args or fallback)
+    pub fn choose(name: &str, dversion: &Option<String>) -> String {
+        if ARGS.get().unwrap().pip {
+            VersionStatus::pip(name)
+        } else if ARGS.get().unwrap().pypi {
+            VersionStatus::pypi(name)
+        } else {
+            // fallback begins here once made sure no arguments are provided
+            let d_version = if let Some(provided) = dversion {
+                Some(provided.to_string())
+            } else {
+                if let Ok(v) = utils::get_python_package_version(name) {
+                    println!("{} : {}",style(name).yellow().dim(), style("A version could not be detected in the source file, so retrieving version from pip instead.").dim());
+                    Some(v)
+                } else if let Ok(v) = utils::get_package_version_pypi(name) {
+                    println!("{} : {}",style(name).red().dim(), style("A version could not be detected through source or pip, so retrieving latest version from pypi.org instead.").dim());
+                    Some(v.to_string())
+                } else {
+                    eprintln!("A version could not be retrieved for {}. This should not happen as pyscan defaults pip or pypi.org, unless you don't have an internet connection, the provided package name is wrong or if the package does not exist.\nReach out on github.com/aswinnnn/pyscan/issues if the above cases did not take place.", style(name).bright().red());
+                    exit(1);
+                }
+            };
+            d_version.unwrap()
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ScannedDependency {
     pub name: String,
     pub version: String,
-    pub vuln: Vulnerability
+    pub vuln: Vulnerability,
 }
