@@ -5,6 +5,7 @@ use reqwest::{
     blocking::{Response, Client},
     Method, header::USER_AGENT,
 };
+use lenient_semver::Version;
 pub fn get_time() -> String {
     // get the current time in a stting format i like.
     let now = Utc::now();
@@ -139,15 +140,18 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
             eprintln!("Failed to parse reponse from pypi.org:\n{}", e); Err(PypiError(e.to_string()))
         }
         else if let Ok(pypi) = parsed {
-            let mut version: Vec<String> = pypi.releases.into_keys().collect();
-            version.sort();
-            Ok(version.last().unwrap().to_owned())
+            let version: Vec<String> = pypi.releases.into_keys().collect();
+
+            let mut somever: Vec<Version> = version.iter().map(|x| {Version::parse(x).unwrap()}).collect();
+
+            somever.sort();
+            Ok(somever.last().unwrap().to_owned())
         }
         else {Err(PypiError("pypi.org response error".to_string()))};
         version
 
     }
     else {exit(1)};
-    Ok(Box::new(if let Err(e) = version {eprintln!("{e}"); exit(1)} else {version.unwrap()}))
+    Ok(Box::new(if let Err(e) = version {eprintln!("{e}"); exit(1)} else {version.unwrap().to_string()}))
 }
 
