@@ -1,5 +1,7 @@
 // automatically generated. do not change.
 
+use std::collections::HashMap;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -143,4 +145,184 @@ pub struct Severity {
     pub score: String,
 }
 
+// pypi.org/pypi/<package>/json JSON repsonse
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PypiResponse {
+    #[serde(rename = "info")]
+    pub info: Info,
+
+    #[serde(rename = "last_serial")]
+    pub last_serial: i64,
+
+    #[serde(rename = "releases")]
+    pub releases: HashMap<String, Vec<Url>>,
+
+    #[serde(rename = "urls")]
+    pub urls: Vec<Url>,
+
+    #[serde(rename = "vulnerabilities")]
+    pub vulnerabilities: Vec<Option<serde_json::Value>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Info {
+    #[serde(rename = "author")]
+    pub author: String,
+
+    #[serde(rename = "author_email")]
+    pub author_email: String,
+
+    #[serde(rename = "bugtrack_url")]
+    pub bugtrack_url: Option<serde_json::Value>,
+
+    #[serde(rename = "classifiers")]
+    pub classifiers: Vec<String>,
+
+    #[serde(rename = "description")]
+    pub description: String,
+
+    #[serde(rename = "description_content_type")]
+    pub description_content_type: String,
+
+    #[serde(rename = "docs_url")]
+    pub docs_url: Option<serde_json::Value>,
+
+    #[serde(rename = "download_url")]
+    pub download_url: Option<serde_json::Value>,
+
+    #[serde(rename = "downloads")]
+    pub downloads: Downloads,
+
+    #[serde(rename = "home_page")]
+    pub home_page: String,
+
+    #[serde(rename = "keywords")]
+    pub keywords: String,
+
+    #[serde(rename = "license")]
+    pub license: String,
+
+    #[serde(rename = "maintainer")]
+    pub maintainer: Option<serde_json::Value>,
+
+    #[serde(rename = "maintainer_email")]
+    pub maintainer_email: Option<serde_json::Value>,
+
+    #[serde(rename = "name")]
+    pub name: String,
+
+    #[serde(rename = "package_url")]
+    pub package_url: String,
+
+    #[serde(rename = "platform")]
+    pub platform: Option<serde_json::Value>,
+
+    #[serde(rename = "project_url")]
+    pub project_url: String,
+
+    #[serde(rename = "project_urls")]
+    pub project_urls: ProjectUrls,
+
+    #[serde(rename = "release_url")]
+    pub release_url: String,
+
+    #[serde(rename = "requires_dist")]
+    pub requires_dist: Option<serde_json::Value>,
+
+    #[serde(rename = "requires_python")]
+    pub requires_python: String,
+
+    #[serde(rename = "summary")]
+    pub summary: String,
+
+    #[serde(rename = "version")]
+    pub version: String,
+
+    #[serde(rename = "yanked")]
+    pub yanked: bool,
+
+    #[serde(rename = "yanked_reason")]
+    pub yanked_reason: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Downloads {
+    #[serde(rename = "last_day")]
+    pub last_day: i64,
+
+    #[serde(rename = "last_month")]
+    pub last_month: i64,
+
+    #[serde(rename = "last_week")]
+    pub last_week: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectUrls {
+    #[serde(rename = "Homepage")]
+    pub homepage: String,
+
+    #[serde(rename = "Source Code")]
+    pub source_code: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Url {
+    #[serde(rename = "comment_text")]
+    pub comment_text: Option<serde_json::Value>,
+
+    #[serde(rename = "digests")]
+    pub digests: Digests,
+
+    #[serde(rename = "downloads")]
+    pub downloads: i64,
+
+    #[serde(rename = "filename")]
+    pub filename: String,
+
+    #[serde(rename = "has_sig")]
+    pub has_sig: bool,
+
+    #[serde(rename = "md5_digest")]
+    pub md5_digest: String,
+
+    #[serde(rename = "packagetype")]
+    pub packagetype: String,
+
+    #[serde(rename = "python_version")]
+    pub python_version: String,
+
+    #[serde(rename = "requires_python")]
+    pub requires_python: String,
+
+    #[serde(rename = "size")]
+    pub size: i64,
+
+    #[serde(rename = "upload_time")]
+    pub upload_time: String,
+
+    #[serde(rename = "upload_time_iso_8601")]
+    pub upload_time_iso_8601: String,
+
+    #[serde(rename = "url")]
+    pub url: String,
+
+    #[serde(rename = "yanked")]
+    pub yanked: bool,
+
+    #[serde(rename = "yanked_reason")]
+    pub yanked_reason: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Digests {
+    #[serde(rename = "blake2b_256")]
+    pub blake2_b_256: String,
+
+    #[serde(rename = "md5")]
+    pub md5: String,
+
+    #[serde(rename = "sha256")]
+    pub sha256: String,
+}

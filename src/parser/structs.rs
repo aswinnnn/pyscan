@@ -73,8 +73,18 @@ impl FoundFileResult {
 pub struct Dependency {
     pub name: String,
     pub version: Option<String>,
-    pub comparator: Option<pep_508::Comparator>
+    pub comparator: Option<pep_508::Comparator>,
+    pub version_status: VersionStatus
 }
+
+#[derive(Debug, Clone)]
+pub struct VersionStatus {
+    // pyscan may get version info from a lot of places. This keeps it in check.
+
+    pub pypi: bool,
+    pub pip: bool,
+    pub source: bool,
+} 
 
 #[derive(Debug, Clone)]
 pub struct ScannedDependency {

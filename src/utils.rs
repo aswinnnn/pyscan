@@ -1,12 +1,10 @@
-
+use std::boxed::Box;
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,
-    blocking::{Response},
-    Method,
+    blocking::{Response, Client},
+    Method, header::USER_AGENT,
 };
-use crate::scanner::models::Pypi;
-
 pub fn get_time() -> String {
     // get the current time in a stting format i like.
     let now = Utc::now();
@@ -29,6 +27,8 @@ pub fn get_version() -> String {
 }
 
 pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
+    // for easily sending web requests
+    
     let client = reqwest::blocking::Client::builder()
         .user_agent(format!("pyscan v{}", get_version()))
         .build();
@@ -62,7 +62,9 @@ pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
     }
 }
 
-use std::process::Command;
+use std::process::{Command, exit};
+
+use crate::scanner::models::PypiResponse;
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
 pub struct PipError(String);
@@ -78,6 +80,7 @@ impl std::fmt::Display for PipError {
 }
 
 pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
+    /// gets the version of a package from pip.
     
     let output = Command::new("pip")
         .arg("show")
@@ -95,5 +98,54 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
     
     if let Some(v) = version { Ok(v)} 
     else { Err(PipError("could not retrive package version from Pip".to_string())) }
+}
+
+#[derive(Debug)]
+pub struct PypiError(String);
+
+// Implement the std::error::Error trait for DockerError
+impl std::error::Error for PypiError {}
+
+// Implement the std::fmt::Display trait for DockerError
+impl std::fmt::Display for PypiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "pypi.org error: {}", self.0)
+    }
+}
+
+impl From<reqwest::Error> for PypiError {
+    fn from(item: reqwest::Error) -> Self {
+        PypiError(item.to_string())
+    }
+}
+
+pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiError> {
+    let url = format!("https://pypi.org/pypi/{package}/json");
+
+    let client = Client::new();
+    let res = client.get(url).header(USER_AGENT, "pyscan").send()?.error_for_status();
+
+    let version = if let Err(e) = res {
+        eprintln!("Failed to make a request to pypi.org:\n{}", e); Err(PypiError(e.to_string()))
+    }
+    else if let Ok(r) = res {
+        let restext = r.text();
+        let restext = if let Ok(r) = restext {r} else {eprintln!("Failed to connect to pypi.org"); exit(1)};
+
+        let parsed: Result<PypiResponse, serde_json::Error> = serde_json::from_str(&restext);
+
+        let version = if let Err(e) = parsed {
+            eprintln!("Failed to parse reponse from pypi.org:\n{}", e); Err(PypiError(e.to_string()))
+        }
+        else if let Ok(pypi) = parsed {
+            let version: Vec<String> = pypi.releases.into_keys().collect();
+            Ok(version.last().unwrap().to_string())
+        }
+        else {Err(PypiError("pypi.org response error".to_string()))};
+        version
+
+    }
+    else {exit(1)};
+    Ok(Box::new(version.unwrap()))
 }
 

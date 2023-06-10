@@ -1,9 +1,11 @@
+use std::process::exit;
+
 /// provides the functions needed to connect to various advisory sources.
 
 use reqwest::{self, blocking::Client, Method};
 use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
 
-use super::{super::utils, models::Pypi};
+use super::{super::utils};
 
 /// OSV provides a distrubuted database for vulns, with a free API
 #[derive(Debug)]
@@ -45,7 +47,16 @@ impl Osv {
         // returns None if no vulns found
         // else Some(Vulnerability)
 
-        let version = if d.version.is_some() {d.version} else {self.get_latest_package_version(d.name.clone())};
+        let version = if d.version.is_some() {d.version} else {
+            let res = utils::get_package_version_pypi(d.name.as_str());
+            if let Err(e) = res {
+                eprintln!("PypiError:\n{}", e.to_string()); exit(1);
+            }
+            else if let Ok(res) = res {
+                Some(res.to_string())
+            }
+            else {eprintln!("A very unexpected error occurred while retrieving version info from Pypi. Please report this on https://github.com/aswinnnn/pyscan/issues"); exit(1);}
+        };
         // println!("{:?}", self.get_latest_package_version(d.name.clone()));
 
         let res = self.get_json(d.name.as_str(), &version.unwrap());
@@ -84,7 +95,7 @@ impl Osv {
 
         }
         else {
-            eprintln!("Could not fetch a response from osv.dev"); None
+            eprintln!("Could not fetch a response from osv.dev"); exit(1);
         }
 
 
