@@ -613,7 +613,7 @@ checksum = "bad7b41cc0ad9b8a9f8d8fcb7c2ab6703a6da4b369cbb7e3a63ee0840769b4eb"
 dependencies = [
  "lenient_semver_parser",
  "lenient_semver_version_builder",
- "serde",
+ "semver",
 ]
 
 [[package]]
@@ -822,6 +822,7 @@ dependencies = [
  "pep-508",
  "regex",
  "reqwest",
+ "semver",
  "serde",
  "serde_json",
  "toml",

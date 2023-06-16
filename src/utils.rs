@@ -1,11 +1,12 @@
-use std::boxed::Box;
+use std::{boxed::Box, collections::HashMap};
+use semver::Version;
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,
     blocking::{Response, Client},
     Method, header::USER_AGENT,
 };
-use lenient_semver::Version;
+
 pub fn get_time() -> String {
     // get the current time in a stting format i like.
     let now = Utc::now();
@@ -65,7 +66,7 @@ pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
 
 use std::process::{Command, exit};
 
-use crate::scanner::models::PypiResponse;
+use crate::{scanner::models::{PypiResponse, Vulnerability, Vuln}, parser::structs::Dependency};
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
 pub struct PipError(String);
@@ -140,10 +141,8 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
             eprintln!("Failed to parse reponse from pypi.org:\n{}", e); Err(PypiError(e.to_string()))
         }
         else if let Ok(pypi) = parsed {
-            let version: Vec<String> = pypi.releases.into_keys().collect();
-
-            let mut somever: Vec<Version> = version.iter().map(|x| {Version::parse(x).unwrap()}).collect();
-
+            let strvers: Vec<String> = pypi.releases.into_keys().collect(); // versions in string
+            let mut somever: Vec<Version> = semver_parse(strvers);
             somever.sort();
             Ok(somever.last().unwrap().to_owned())
         }
@@ -155,3 +154,24 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
     Ok(Box::new(if let Err(e) = version {eprintln!("{e}"); exit(1)} else {version.unwrap().to_string()}))
 }
 
+pub fn semver_parse(v: Vec<String>) -> Vec<Version> {
+    let mut cache: Vec<Version> = Vec::new();
+    for x in v {
+        let version = lenient_semver::Version::parse(x.as_str()).unwrap();
+        let b = Version::from(version);
+        cache.push(b)
+    }
+    cache
+}
+
+
+/// returns a hashmap<string, string> of (dependency name, version)
+pub fn vecdep_to_hashmap(v: &Vec<Dependency>) -> HashMap<String, String> {
+    let mut importmap: HashMap<String, String> = HashMap::new();
+
+    v.iter().for_each(|d|{
+        importmap.insert(d.name.clone(), d.version.as_ref().unwrap().clone());
+    } );
+
+    importmap
+}

@@ -1,8 +1,12 @@
 // automatically generated. do not change.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, process::exit};
 
 use serde::{Serialize, Deserialize};
+
+use crate::{utils, parser::structs::ScannedDependency};
+
+use super::api::Osv;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vulnerability {
@@ -145,7 +149,7 @@ pub struct Severity {
     pub score: String,
 }
 
-// pypi.org/pypi/<package>/json JSON repsonse
+// --- pypi.org/pypi/<package>/json JSON repsonse ---
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PypiResponse {
@@ -325,4 +329,77 @@ pub struct Digests {
 
     #[serde(rename = "sha256")]
     pub sha256: String,
+}
+
+
+// BATCHED QUERY MODELS
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryBatched {
+    queries: Vec<Query>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Query {
+
+    pub version: String,
+
+    pub package: QueryPackage,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryPackage {
+    pub name: String,
+
+    pub ecosystem: String
+}
+
+// REPONSE FROM QUERY_BATCHED
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryResponse {
+    pub results: Vec<QueryResponseVulns>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryResponseVulns {
+    pub vulns: Vec<QueryVulnInfo>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryVulnInfo {
+    pub id: String,
+    pub modified: String
+}
+
+
+
+impl Query {
+    pub fn new(version: &str, name: &str) -> Query {
+        Query {
+            version: version.to_string(),
+            package: QueryPackage { name: name.to_string(), ecosystem: "PyPI".to_string() }
+        }
+    }
+}
+
+impl QueryBatched {
+    pub fn new(q: Vec<Query>) -> QueryBatched {
+        QueryBatched { queries: q }
+    }
+}
+
+impl Vulnerability {
+    pub fn to_scanned_dependency(&self, imports_info: &HashMap<String, String>) -> ScannedDependency {
+        let name_from_v = if let Some(n) = self.vulns.first() {
+            if !n.affected.is_empty() {n.affected.first().unwrap().package.name.clone()}
+            else {"Name in Context".to_string()}
+        }
+        else {"Name In Context".to_string()};
+
+        let version_from_map = imports_info.get(&name_from_v).unwrap(); // unwrapping safe as the hashmap is literally from the source of where the vuln was created...hopefully.
+
+        ScannedDependency { name: name_from_v, version: version_from_map.to_owned(), vuln: self.clone() }
+
+    }
 }

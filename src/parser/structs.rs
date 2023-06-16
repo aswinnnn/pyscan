@@ -1,7 +1,7 @@
 use console::style;
-use std::{ffi::OsString, process::exit};
+use std::{ffi::OsString, process::exit, collections::HashMap};
 
-use crate::{utils, ARGS};
+use crate::{utils, ARGS, scanner::models::Query};
 
 use super::scanner::models::Vulnerability;
 
@@ -79,6 +79,12 @@ pub struct Dependency {
     pub version: Option<String>,
     pub comparator: Option<pep_508::Comparator>,
     pub version_status: VersionStatus,
+}
+
+impl Dependency {
+    pub fn to_query(&self) -> Query {
+        Query::new(self.version.as_ref().unwrap().as_str(), self.name.as_str())
+    }
 }
 
 #[derive(Debug, Clone)]
