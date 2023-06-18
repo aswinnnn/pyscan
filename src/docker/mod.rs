@@ -57,7 +57,7 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
     cmd.arg("cp")
         .arg(format!(
             "{}:/{}",
-            container_id.clone(),
+            container_id,
             path.to_str().expect("Path contains non-unicode characters")
         ))
         .arg("./tmp/docker-files");
@@ -126,7 +126,7 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
 
 fn create_tmp_folder(path: &str) -> std::io::Result<()> {
     let tmp_path = format!("{}/tmp/docker-files", path);
-    std::fs::create_dir_all(&tmp_path)?;
+    std::fs::create_dir_all(tmp_path)?;
     Ok(())
 }
 

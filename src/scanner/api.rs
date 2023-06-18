@@ -62,7 +62,7 @@ impl Osv {
         } else {
             let res = utils::get_package_version_pypi(d.name.as_str());
             if let Err(e) = res {
-                eprintln!("PypiError:\n{}", e.to_string());
+                eprintln!("PypiError:\n{}", e);
                 exit(1);
             } else if let Ok(res) = res {
                 Some(res.to_string())
@@ -101,7 +101,6 @@ impl Osv {
         let batched = QueryBatched::new(queries);
 
         let body = serde_json::to_string(&batched).unwrap();
-        println!("{:#?}", body.clone());
 
         let res = self.client.request(Method::POST, url).body(body).send();
         if let Ok(response) = res {
@@ -114,7 +113,6 @@ impl Osv {
             }
 
             let restext = response.text().unwrap();
-            println!();
 
             let parsed: Result<QueryResponse, serde_json::Error> = serde_json::from_str(&restext);
             let mut scanneddeps: Vec<ScannedDependency> = Vec::new();

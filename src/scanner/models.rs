@@ -1,12 +1,12 @@
 // automatically generated. do not change.
 
-use std::{collections::HashMap, process::exit, marker::PhantomData};
+use std::{collections::HashMap};
 
-use serde::{Serialize, Deserialize, Deserializer, de::{Visitor, SeqAccess}};
+use serde::{Serialize, Deserialize};
 
-use crate::{utils, parser::structs::ScannedDependency};
+use crate::{parser::structs::ScannedDependency};
 
-use super::api::Osv;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vulnerability {

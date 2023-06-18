@@ -1,5 +1,5 @@
 use console::style;
-use std::{ffi::OsString, process::exit, collections::HashMap};
+use std::{ffi::OsString, process::exit};
 
 use crate::{utils, ARGS, scanner::models::Query};
 
@@ -123,26 +123,26 @@ impl VersionStatus {
 
     pub fn pip(name: &str) -> String {
         let pip = utils::get_python_package_version(name);
-        let pip_v = if let Err(e) = pip {
+        
+
+        if let Err(e) = pip {
             println!("An error occurred while retrieving version info from pip.\n{e}");
             exit(1)
         } else {
             pip.unwrap()
-        };
-
-        pip_v
+        }
     }
 
     pub fn pypi(name: &str) -> String {
         let pypi = utils::get_package_version_pypi(name);
-        let pypi_v = if let Err(e) = pypi {
+        
+
+        if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");
             exit(1)
         } else {
             *pypi.unwrap()
-        };
-
-        pypi_v
+        }
     }
 
     /// returns the chosen version (from args or fallback)
@@ -155,17 +155,15 @@ impl VersionStatus {
             // fallback begins here once made sure no arguments are provided
             let d_version = if let Some(provided) = dversion {
                 Some(provided.to_string())
+            } else if let Ok(v) = utils::get_python_package_version(name) {
+                println!("{} : {}",style(name).yellow().dim(), style("A version could not be detected in the source file, so retrieving version from pip instead.").dim());
+                Some(v)
+            } else if let Ok(v) = utils::get_package_version_pypi(name) {
+                println!("{} : {}",style(name).red().dim(), style("A version could not be detected through source or pip, so retrieving latest version from pypi.org instead.").dim());
+                Some(v.to_string())
             } else {
-                if let Ok(v) = utils::get_python_package_version(name) {
-                    println!("{} : {}",style(name).yellow().dim(), style("A version could not be detected in the source file, so retrieving version from pip instead.").dim());
-                    Some(v)
-                } else if let Ok(v) = utils::get_package_version_pypi(name) {
-                    println!("{} : {}",style(name).red().dim(), style("A version could not be detected through source or pip, so retrieving latest version from pypi.org instead.").dim());
-                    Some(v.to_string())
-                } else {
-                    eprintln!("A version could not be retrieved for {}. This should not happen as pyscan defaults pip or pypi.org, unless you don't have an internet connection, the provided package name is wrong or if the package does not exist.\nReach out on github.com/aswinnnn/pyscan/issues if the above cases did not take place.", style(name).bright().red());
-                    exit(1);
-                }
+                eprintln!("A version could not be retrieved for {}. This should not happen as pyscan defaults pip or pypi.org, unless you don't have an internet connection, the provided package name is wrong or if the package does not exist.\nReach out on github.com/aswinnnn/pyscan/issues if the above cases did not take place.", style(name).bright().red());
+                exit(1);
             };
             d_version.unwrap()
         }

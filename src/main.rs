@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use clap;
+
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
 use console::style;
@@ -113,7 +113,7 @@ fn main() {
             style(path.to_string_lossy()).bold().green());
             println!("{}", 
         style("--- Make sure you run the command with elevated permissions (sudo/administrator) as pyscan might have trouble accessing files inside docker containers ---").dim());
-            docker::list_files_in_docker_image(&name, path.to_path_buf())
+            docker::list_files_in_docker_image(name, path.to_path_buf())
             .expect("Error in scanning files from Docker image.");
             exit(0)
         }
