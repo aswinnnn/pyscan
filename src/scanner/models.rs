@@ -1,8 +1,8 @@
 // automatically generated. do not change.
 
-use std::{collections::HashMap, process::exit};
+use std::{collections::HashMap, process::exit, marker::PhantomData};
 
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, Deserializer, de::{Visitor, SeqAccess}};
 
 use crate::{utils, parser::structs::ScannedDependency};
 
@@ -356,22 +356,38 @@ pub struct QueryPackage {
 
 // REPONSE FROM QUERY_BATCHED
 
+// #[derive(Debug, Clone, Serialize, Deserialize)]
+// pub struct QueryResponse {
+//     pub results: Vec<QueryResponseVulns>
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize)]
+// pub struct QueryResponseVulns {
+//     pub vulns: Vec<Option<QueryVulnInfo>> // each vec represents individual dependencies, which may or may not have vuln(s) present, therefore optioned.
+// }
+
+// #[derive(Debug, Clone, Serialize, Deserialize)]
+// pub struct QueryVulnInfo {
+//     pub id: String,
+//     pub modified: String
+// }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryResponse {
-    pub results: Vec<QueryResponseVulns>
+    pub results: Vec<QueryResult>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryResponseVulns {
-    pub vulns: Vec<QueryVulnInfo>
+pub struct QueryResult {
+    pub vulns: Option<Vec<QueryVuln>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryVulnInfo {
+pub struct QueryVuln {
     pub id: String,
-    pub modified: String
-}
 
+    pub modified: String,
+}
 
 
 impl Query {

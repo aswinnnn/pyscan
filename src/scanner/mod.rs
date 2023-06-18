@@ -7,6 +7,7 @@ use console::{Term, style};
 
 
 pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
+    let osv = api::Osv::new().unwrap(); // err handling done inside, unwrapping is safe
     let cons = Term::stdout();
     let s = format!("Found {} dependencies...", style(format!("{}", imports.len()))
     .bold()
@@ -14,38 +15,30 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
 
     cons.write_line(&s)?;
 
-    let osv = api::Osv::new().unwrap(); // err handling done inside, unwrapping is safe
-    let mut collected: Vec<ScannedDependency> = Vec::new();
-
-    for mut d in imports {
-        d.version = Some(VersionStatus::choose(d.name.as_str(), &d.version));
-
-        let mut depstr = format!("|-| {} [{}]", style(d.name.clone()).bold().bright().yellow(), style(d.version.clone().unwrap().to_string()).bold().dim());
-        cons.write_line(&depstr)?;
-
-        let res = osv.query(d.clone());
-        if let Some(v) = res {
-            depstr.push_str(
-                format!("{}", style(" -> Found vulnerabilities!").bold().bright().red()).as_str()
-            );
-            cons.clear_last_lines(1)?;
-            cons.write_line(&depstr)?;
-            collected.push(ScannedDependency { name:  d.name, version: d.version.unwrap(), vuln: v });
-
-        }
-        else {
-            depstr.push_str(
-                format!("{}", style(" -> No vulnerabilities found.").bold().bright().green()).as_str()
-            );
-            cons.clear_last_lines(1)?;
-            cons.write_line(&depstr)?;
-        }
-
-    }
-
-    // --- summary starts here ---
-
+    // collected contains the dependencies with found vulns. imports_info contains a name, version hashmap of all found dependencies so we can display for all imports if vulns have been found or not
+    let (collected,mut imports_info) = osv.query_batched(imports); 
+    
     if !collected.is_empty() {
+        
+        // --- displaying query result starts here ---
+        
+        for dep in &collected {
+            let _ = cons.write_line(format!("|-| {} [{}]{:^5}", style(dep.name.as_str()).bold().bright().yellow(), style(dep.version.as_str()).bold().dim(), style(" -> Found vulnerabilities!").bold().bright().red()).as_str());
+
+        } // displays all the deps where vuln has been found 
+
+        // remove the the deps with vulns from import_info so what remains is the safe deps, which we can display as safe
+        for d in collected.iter() {
+            imports_info.remove(d.name.as_str());
+        }
+
+        for (k,v) in imports_info.iter() {
+            let _ = cons.write_line(format!("|-| {} [{}]{}", style(k.as_str()).bold().bright().yellow(), style(v.as_str()).bold().dim(), style(" -> No vulnerabilities found.").bold().bright().green()).as_str());
+        } // display the safe deps
+
+
+
+        // --- summary starts here ---
         cons.write_line(&format!("{}", style("SUMMARY").bold().yellow().underlined()))?;
         for v in collected {
     
