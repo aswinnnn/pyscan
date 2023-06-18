@@ -1,5 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
+use utils::PipCache;
 
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
@@ -85,10 +86,18 @@ static ARGS: Lazy<OnceLock<Cli>> =  Lazy::new(|| {OnceLock::from(Cli::parse())})
 // such as --pip or --pypi due to different use cases. Args only get wrote to once so it shouldn't pose a problem (Reason its OnceLock'ed).
 // Why is it Lazy? Something about a non-const fn in a const world. Pretty surprised to see the compiler recommend an outside crate for this issue.
 
+static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
+// is a hashmap of package name, version from 'pip list'
+// because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
+
 
 fn main() {
     
     println!("pyscan v{} | by Aswin (github.com/aswinnnn)", get_version());  
+
+    // init pip cache
+    let _ = PIPCACHE.lookup("something");
+    // since its in Lazy its first accesss would init the cache, the result is ignorable.
 
     match &ARGS.get().unwrap().subcommand {
         // subcommand package

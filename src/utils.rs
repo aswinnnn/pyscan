@@ -72,7 +72,7 @@ pub fn _reqwest_send(method: &str, url: String) -> Option<Response> {
 
 use std::process::{exit, Command};
 
-use crate::{parser::structs::Dependency, scanner::models::PypiResponse};
+use crate::{parser::structs::Dependency, scanner::models::PypiResponse, PIPCACHE};
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
 pub struct PipError(String);
@@ -90,27 +90,35 @@ impl std::fmt::Display for PipError {
 pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
     // gets the version of a package from pip.
 
-    let output = Command::new("pip")
-        .arg("show")
-        .arg(package)
-        .output()
-        .map_err(|e| PipError(e.to_string()))?;
-
-    let output = output.stdout;
-    let output = String::from_utf8(output).map_err(|e| PipError(e.to_string()))?;
-
-    let version = output
-        .lines()
-        .find(|line| line.starts_with("Version: "))
-        .map(|line| line[9..].to_string());
-
-    if let Some(v) = version {
-        Ok(v)
-    } else {
-        Err(PipError(
-            "could not retrive package version from Pip".to_string(),
-        ))
+    // check cache first
+    if PIPCACHE.cached {
+        let version = PIPCACHE.lookup(package).map_err(|e| {PipError(e.to_string())})?;
+        Ok(version)
     }
+    else {
+        let output = Command::new("pip")
+            .arg("show")
+            .arg(package)
+            .output()
+            .map_err(|e| PipError(e.to_string()))?;
+    
+        let output = output.stdout;
+        let output = String::from_utf8(output).map_err(|e| PipError(e.to_string()))?;
+    
+        let version = output
+            .lines()
+            .find(|line| line.starts_with("Version: "))
+            .map(|line| line[9..].to_string());
+    
+        if let Some(v) = version {
+            Ok(v)
+        } else {
+            Err(PipError(
+                "could not retrive package version from Pip".to_string(),
+            ))
+        }
+    }
+
 }
 
 #[derive(Debug)]
@@ -224,17 +232,20 @@ pub fn vecdep_to_hashmap(v: &Vec<Dependency>) -> HashMap<String, String> {
     importmap
 }
 
-struct PipCache {
+pub struct PipCache {
     cache: HashMap<String, String>,
     cached: bool,
 }
 
 impl PipCache {
-    pub fn run_cache(&mut self) {
+    // initializes the cache, caches and returns itself. 
+    pub fn init() -> PipCache {
         let pip_list = pip_list();
         if let Ok(pl) = pip_list {
-            self.cache = pl;
-            self.cached = true;
+            PipCache {
+                cache: pl,
+                cached: true
+            }
         } else if let Err(e) = pip_list {
             eprintln!("{e}");
             exit(1)
