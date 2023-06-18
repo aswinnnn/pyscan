@@ -2,7 +2,6 @@ use chrono::{Timelike, Utc};
 use reqwest::{
     self,
     blocking::{Client, Response},
-    header::USER_AGENT,
     Method,
 };
 use semver::Version;
@@ -257,7 +256,6 @@ impl PipCache {
     // clears if cached, otherwise does nothing
     pub fn clear_cache(&mut self) {
         if !self.cached {
-            return;
         } else {
             self.cache.clear()
         }

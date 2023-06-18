@@ -2,6 +2,8 @@ pub mod api;
 pub mod models;
 use std::process::exit;
 
+use crate::ARGS;
+
 use super::parser::structs::Dependency;
 use console::{Term, style};
 
