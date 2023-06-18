@@ -39,7 +39,8 @@ struct Cli {
     
     /// show the version and information about a package from all available sources. (does not search for vulns, use 'package' subcommand for that).
     /// usage: pyscan show requests pyscan-rs lxml koda
-    #[arg(long, value_delimiter=' ', value_name="package1 package2 package3...")]
+    /// hidden due to unfinished
+    #[arg(long, value_delimiter=' ', value_name="package1 package2 package3...", hide=true)]
     show: Vec<String>,
 
     /// Uses pip to retrieve versions. if not provided it will use the source, falling back on pip if not, pypi.org.
