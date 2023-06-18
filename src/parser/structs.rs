@@ -1,7 +1,7 @@
 use console::style;
 use std::{ffi::OsString, process::exit};
 
-use crate::{utils, ARGS, scanner::models::Query};
+use crate::{scanner::models::Query, utils, ARGS};
 
 use super::scanner::models::Vulnerability;
 
@@ -123,7 +123,6 @@ impl VersionStatus {
 
     pub fn pip(name: &str) -> String {
         let pip = utils::get_python_package_version(name);
-        
 
         if let Err(e) = pip {
             println!("An error occurred while retrieving version info from pip.\n{e}");
@@ -135,7 +134,6 @@ impl VersionStatus {
 
     pub fn pypi(name: &str) -> String {
         let pypi = utils::get_package_version_pypi(name);
-        
 
         if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");

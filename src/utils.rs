@@ -146,7 +146,6 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
     let client = Client::new();
     let res = client
         .get(url)
-        .header(USER_AGENT, "pyscan")
         .send()?
         .error_for_status();
 
@@ -180,6 +179,7 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
     } else {
         exit(1)
     };
+
     Ok(Box::new(if let Err(e) = version {
         eprintln!("{e}");
         exit(1)
