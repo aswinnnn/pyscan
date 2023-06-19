@@ -55,7 +55,19 @@ pub fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
                     let details = format!("Details: {}", style(vuln.details).italic());
 
                     // VERSIONS AFFECTED from ... to
-                    let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![affected.versions.first().unwrap().to_string(), affected.versions.last().unwrap().to_string()]}).collect();
+                    let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![{
+                        if let Some(v) = &affected.versions {
+                            v.first().unwrap().to_string()
+                        }
+                        else {"This version".to_string()}
+
+                    }, {
+                        if let Some(v) = &affected.versions {
+                            v.last().unwrap().to_string()
+                        }
+                        else {"Unknown".to_string()}
+                    }]}).collect();
+                    // let vers: Vec<Vec<String>> = vuln.affected.iter().map(|affected| {vec![affected.versions.first().unwrap().to_string(), affected.versions.last().unwrap().to_string()]}).collect();
 
                     let version = format!("Versions affected: {} to {}", style(vers.first().expect("No version found affected").first().unwrap()).dim().underlined(), style(vers.last().expect("No version found affected").last().unwrap()).dim().underlined());
 

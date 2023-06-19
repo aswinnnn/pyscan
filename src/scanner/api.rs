@@ -120,6 +120,7 @@ impl Osv {
             if let Ok(p) = parsed {
                 for vres in p.results {
                     if let Some(vulns) = vres.vulns {
+                        
                         let vecvulns: Vec<Vuln> = vulns.iter().map(|qv| {
                             self.vuln_id(qv.id.as_str()) // retrives vuln info from API with a vuln ID
                         }).collect();
@@ -158,11 +159,16 @@ impl Osv {
                 eprintln!("Failed connecting to OSV. [Server error]")
             }
             let restext = response.text().unwrap();
+            // println!("{:#?}", restext.clone());
             let parsed: Result<Vuln, serde_json::Error> = serde_json::from_str(&restext);
             if let Ok(p) = parsed {
                 p
-            } else {
-                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::vuln_id");
+            } else if let Err(e) = parsed {
+                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::vuln_id\n{}", e.to_string());
+                exit(1);
+            }
+            else {
+                eprintln!("Invalid parse of API reponse at src/scanner/api.rs(vuln_id)");
                 exit(1);
             }
         } else {
