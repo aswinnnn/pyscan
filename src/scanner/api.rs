@@ -1,13 +1,13 @@
+use crate::display;
+/// provides the functions needed to connect to various advisory sources.
 use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
 use crate::{
     parser::structs::{ScannedDependency, VersionStatus},
     scanner::models::Vuln,
 };
-use reqwest::{self, blocking::Client, Method};
+use reqwest::{self, Client, Method};
 use std::collections::HashMap;
-/// provides the functions needed to connect to various advisory sources.
 use std::process::exit;
-
 use super::{
     super::utils,
     models::{Query, QueryBatched, QueryResponse},
@@ -25,15 +25,15 @@ pub struct Osv {
 }
 
 impl Osv {
-    pub fn new() -> Result<Osv, ()> {
+    pub async fn new() -> Result<Osv, ()> {
         let version = utils::get_version();
         let pyscan_version = format!("pyscan {}", version);
-        let client = reqwest::blocking::Client::builder()
+        let client = reqwest::Client::builder()
             .user_agent(pyscan_version)
             .build();
 
         if let Ok(client) = client {
-            let res = client.get("https://osv.dev").send();
+            let res = client.get("https://osv.dev").send().await;
 
             if let Ok(_success) = res {
                 Ok(Osv {
@@ -53,7 +53,7 @@ impl Osv {
         }
     }
 
-    pub fn query(&self, d: Dependency) -> Option<Vulnerability> {
+    pub async fn query(&self, d: Dependency) -> Option<Vulnerability> {
         // returns None if no vulns found
         // else Some(Vulnerability)
 
@@ -73,14 +73,14 @@ impl Osv {
         };
         // println!("{:?}", self.get_latest_package_version(d.name.clone()));
 
-        let res = self.get_json(d.name.as_str(), &version.unwrap());
+        let res = self.get_json(d.name.as_str(), &version.unwrap()).await;
         // println!("{:?}", res);
 
         res
     }
 
-    pub fn query_batched(&self, mut deps: Vec<Dependency>) -> (Vec<ScannedDependency>, HashMap<String, String>) {
-        // runs the batch API. Each dep is converted into JSON format here, POSTed, and the response of vuln IDs -> queried into Vec<Vulnerability> -> returned as Vec<ScannedDependency> -> enters the summary part of scanner::start()
+    pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> (Vec<ScannedDependency>, HashMap<String, String>) {
+        // runs the batch API. Each dep is converted into JSON format here, POSTed, and the response of vuln IDs -> queried into Vec<Vulnerability> -> returned as Vec<ScannedDependency>
         // The dep version conflicts are also solved over here.
         let _ = deps
             .iter_mut()
@@ -93,6 +93,8 @@ impl Osv {
             })
             .collect::<Vec<_>>();
 
+        let mut progress = display::Progress::new();
+
         let imports_info = utils::vecdep_to_hashmap(&deps);
 
         let url = "https://api.osv.dev/v1/querybatch";
@@ -102,7 +104,7 @@ impl Osv {
 
         let body = serde_json::to_string(&batched).unwrap();
 
-        let res = self.client.request(Method::POST, url).body(body).send();
+        let res = self.client.request(Method::POST, url).body(body).send().await;
         if let Ok(response) = res {
             if response.status().is_client_error() {
                 eprintln!("Failed connecting to OSV. [Client error]");
@@ -112,7 +114,7 @@ impl Osv {
                 exit(1)
             }
 
-            let restext = response.text().unwrap();
+            let restext = response.text().await.unwrap();
 
             let parsed: Result<QueryResponse, serde_json::Error> = serde_json::from_str(&restext);
             let mut scanneddeps: Vec<ScannedDependency> = Vec::new();
@@ -120,14 +122,16 @@ impl Osv {
             if let Ok(p) = parsed {
                 for vres in p.results {
                     if let Some(vulns) = vres.vulns {
+
                         
-                        let vecvulns: Vec<Vuln> = vulns.iter().map(|qv| {
-                            self.vuln_id(qv.id.as_str()) // retrives vuln info from API with a vuln ID
-                        }).collect();
+                        let mut vecvulns: Vec<Vuln> = Vec::new();
+                        for qv in vulns.iter() {
+                            vecvulns.push(self.vuln_id(qv.id.as_str()).await) // retrives vuln info from API with a vuln ID
+                        }
 
                         // has to be turnt to Vulnerability before becoming a scanned dependency
                         let structvuln = Vulnerability {vulns: vecvulns};
-
+                        progress.count_one(); progress.display(); // increment progress
                         scanneddeps.push(structvuln.to_scanned_dependency(&imports_info));
 
                     }
@@ -145,10 +149,10 @@ impl Osv {
     }
 
     /// get a Vuln from a vuln ID from OSV
-    pub fn vuln_id(&self, id: &str) -> Vuln {
+    pub async fn vuln_id(&self, id: &str) -> Vuln {
         let url = format!("https://api.osv.dev/v1/vulns/{id}");
 
-        let res = self.client.request(Method::GET, url).send();
+        let res = self.client.request(Method::GET, url).send().await;
 
         // println!("{:?}", res);
 
@@ -158,7 +162,7 @@ impl Osv {
             } else if response.status().is_server_error() {
                 eprintln!("Failed connecting to OSV. [Server error]")
             }
-            let restext = response.text().unwrap();
+            let restext = response.text().await.unwrap();
             // println!("{:#?}", restext.clone());
             let parsed: Result<Vuln, serde_json::Error> = serde_json::from_str(&restext);
             if let Ok(p) = parsed {
@@ -177,7 +181,7 @@ impl Osv {
         }
     }
 
-    pub fn get_json(&self, name: &str, version: &str) -> Option<Vulnerability> {
+    pub async fn get_json(&self, name: &str, version: &str) -> Option<Vulnerability> {
         let url = r"https://api.osv.dev/v1/query";
 
         let body = Query::new(version, name); // struct implementation of query sent to OSV API.
@@ -185,7 +189,7 @@ impl Osv {
 
         // println!("{}", body.clone());
 
-        let res = self.client.request(Method::POST, url).body(body).send();
+        let res = self.client.request(Method::POST, url).body(body).send().await;
 
         // println!("{:?}", res);
 
@@ -195,7 +199,7 @@ impl Osv {
             } else if response.status().is_server_error() {
                 eprintln!("Failed connecting to OSV. [Server error]")
             }
-            let restext = response.text().unwrap();
+            let restext = response.text().await.unwrap();
             if !restext.len() < 3 {
                 // check if vulns exist by char len of json
                 // api returns '{}' if none found so this is easy

@@ -9,6 +9,7 @@ mod utils;
 mod parser;
 mod scanner;
 mod docker;
+mod display;
 
 use std::env;
 
@@ -92,9 +93,10 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
 
 
-fn main() {
+#[tokio::main]
+async fn main() {
     
-    println!("pyscan v{} | by Aswin (github.com/aswinnnn)", get_version());  
+    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
     // init pip cache
     let _ = PIPCACHE.lookup("something");
@@ -123,7 +125,7 @@ fn main() {
             style(path.to_string_lossy()).bold().green());
             println!("{}", 
         style("--- Make sure you run the command with elevated permissions (sudo/administrator) as pyscan might have trouble accessing files inside docker containers ---").dim());
-            docker::list_files_in_docker_image(name, path.to_path_buf())
+            docker::list_files_in_docker_image(name, path.to_path_buf()).await
             .expect("Error in scanning files from Docker image.");
             exit(0)
         }
@@ -136,12 +138,10 @@ fn main() {
     // --- giving control to parser starts here ---
 
     // if a directory path is provided
-    if let Some(dir) = &ARGS.get().unwrap().dir { parser::scan_dir(dir.as_path()) } 
+    if let Some(dir) = &ARGS.get().unwrap().dir { parser::scan_dir(dir.as_path()).await } 
 
     // if not, use cwd
-    else if let Ok(dir) = env::current_dir() { parser::scan_dir(dir.as_path()) } 
-    else {eprintln!("the given directory is empty.")}; // err when dir is empty
-
-
+    else if let Ok(dir) = env::current_dir() { parser::scan_dir(dir.as_path()).await } 
+    else {eprintln!("the given directory is empty."); exit(1)}; // err when dir is empty
 
 }

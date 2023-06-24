@@ -19,7 +19,7 @@ impl std::fmt::Display for DockerError {
 
 // Define a function that takes a docker image name as a parameter
 // and returns a result of either a vector of filenames or a DockerError
-pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), DockerError> {
+pub async fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), DockerError> {
     // Create a Command object to run docker commands
     let mut cmd = Command::new("docker");
 
@@ -73,7 +73,7 @@ pub fn list_files_in_docker_image(image: &str, path: PathBuf) -> Result<(), Dock
         ));
     }
 
-    scan_dir(Path::new("./tmp/docker-files"));
+    scan_dir(Path::new("./tmp/docker-files")).await;
     cleanup().map_err(|e| DockerError(e.to_string()) )?;
 
     // docker stop
