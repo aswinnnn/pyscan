@@ -1,11 +1,16 @@
-
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,
-    blocking::{Response},
+    blocking::{Client, Response},
     Method,
 };
-use crate::scanner::models::Pypi;
+use semver::Version;
+use std::{
+    boxed::Box,
+    collections::HashMap,
+    io::{self, ErrorKind, Error},
+    str
+};
 
 pub fn get_time() -> String {
     // get the current time in a stting format i like.
@@ -28,7 +33,9 @@ pub fn get_version() -> String {
     "0.1.3".to_string()
 }
 
-pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
+pub fn _reqwest_send(method: &str, url: String) -> Option<Response> {
+    // for easily sending web requests
+
     let client = reqwest::blocking::Client::builder()
         .user_agent(format!("pyscan v{}", get_version()))
         .build();
@@ -62,50 +69,9 @@ pub fn reqwest_send(method: &str, url: String) -> Option<Response> {
     }
 }
 
-pub fn get_latest_package_version(name: String) -> Option<String> {
-    let url = format!(
-        "https://api.deps.dev/v3alpha/systems/pypi/packages/{}",
-        name
-    );
-    // gets the latest released version of a package from pypi.
+use std::process::{exit, Command};
 
-    let res = reqwest_send("get", url);
-
-    // println!("{:?}", res.unwrap().text());
-    // Some("l".to_string())
-
-    if let Some(response) = res {
-        let parsed: Result<Pypi, serde_json::Error> =
-            serde_json::from_str(response.text().unwrap().as_str());
-
-        if let Ok(pypi) = parsed {
-            // println!("{:?}", pypi);
-            // Some("()".to_string())
-            if let Some(v) = pypi.versions.iter().last().cloned() {
-                let s = v
-                    .iter()
-                    .last()
-                    .unwrap()
-                    .to_owned()
-                    .version_key
-                    .unwrap()
-                    .version;
-                Some(s)
-            } else {
-                eprintln!("Could not identify the latest version of the package {}. Please add the version specification to your source and try again.", name);
-                None
-            }
-        } else {
-            eprintln!("There was a problem finding the latest version of {}. Either it does not exist or the API cannot identify the latest version. Please provide a version specification in your source instead.", name);
-            None
-        }
-    } else {
-        eprintln!("Could not reach the pypi API to fetch the latest version of {}. Please provide a version specification in your source.", name);
-        None
-    }
-}
-
-use std::process::Command;
+use crate::{parser::structs::Dependency, scanner::models::PypiResponse, PIPCACHE};
 // Define a custom error type that wraps a String message
 #[derive(Debug)]
 pub struct PipError(String);
@@ -121,21 +87,188 @@ impl std::fmt::Display for PipError {
 }
 
 pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
+    // gets the version of a package from pip.
+
+    // check cache first
+    if PIPCACHE.cached {
+        let version = PIPCACHE.lookup(package).map_err(|e| {PipError(e.to_string())})?;
+        Ok(version)
+    }
+    else {
+        let output = Command::new("pip")
+            .arg("show")
+            .arg(package)
+            .output()
+            .map_err(|e| PipError(e.to_string()))?;
     
+        let output = output.stdout;
+        let output = String::from_utf8(output).map_err(|e| PipError(e.to_string()))?;
+    
+        let version = output
+            .lines()
+            .find(|line| line.starts_with("Version: "))
+            .map(|line| line[9..].to_string());
+    
+        if let Some(v) = version {
+            Ok(v)
+        } else {
+            Err(PipError(
+                "could not retrive package version from Pip".to_string(),
+            ))
+        }
+    }
+
+}
+
+#[derive(Debug)]
+pub struct PypiError(String);
+
+// Implement the std::error::Error trait for DockerError
+impl std::error::Error for PypiError {}
+
+// Implement the std::fmt::Display trait for DockerError
+impl std::fmt::Display for PypiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "pypi.org error: {}", self.0)
+    }
+}
+
+impl From<reqwest::Error> for PypiError {
+    fn from(item: reqwest::Error) -> Self {
+        PypiError(item.to_string())
+    }
+}
+
+pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiError> {
+    let url = format!("https://pypi.org/pypi/{package}/json");
+
+    let client = Client::new();
+    let res = client
+        .get(url)
+        .send()?
+        .error_for_status();
+
+    let version = if let Err(e) = res {
+        eprintln!("Failed to make a request to pypi.org:\n{}", e);
+        Err(PypiError(e.to_string()))
+    } else if let Ok(r) = res {
+        let restext = r.text();
+        let restext = if let Ok(r) = restext {
+            r
+        } else {
+            eprintln!("Failed to connect to pypi.org");
+            exit(1)
+        };
+        // println!("{:#?}", restext.clone());
+
+        let parsed: Result<PypiResponse, serde_json::Error> = serde_json::from_str(restext.trim());
+
+        let version = if let Err(e) = parsed {
+            eprintln!("Failed to parse reponse from pypi.org:\n{}", e);
+            Err(PypiError(e.to_string()))
+        } else if let Ok(pypi) = parsed {
+            let strvers: Vec<String> = pypi.releases.into_keys().collect(); // versions in string
+            let mut somever: Vec<Version> = semver_parse(strvers);
+            somever.sort();
+            Ok(somever.last().unwrap().to_owned())
+        } else {
+            Err(PypiError("pypi.org response error".to_string()))
+        };
+        version
+    } else {
+        exit(1)
+    };
+
+    Ok(Box::new(if let Err(e) = version {
+        eprintln!("{e}");
+        exit(1)
+    } else {
+        version.unwrap().to_string()
+    }))
+}
+
+// creates a hashmap of package name,version from pip list.
+pub fn pip_list() -> io::Result<HashMap<String, String>> {
     let output = Command::new("pip")
-        .arg("show")
-        .arg(package)
-        .output().map_err(|e| {PipError(e.to_string())})?;
+        .arg("list")
+        .output()
+        .map_err(|_| io::Error::new(ErrorKind::Other, "Failed to execute 'pip list' command. pyscan caches the dependencies from pip with versions to be faster and it could not run 'pip list'. You can turn this off via just using --cache-off [note: theres a chance pyscan might still fallback to using pip]"))?;
 
-    let output = output.stdout;
-    let output = String::from_utf8(output)
-    .map_err(|e| {PipError(e.to_string())})?;
+    let output_str = str::from_utf8(&output.stdout)
+        .map_err(|_| io::Error::new(ErrorKind::InvalidData, "Output from 'pip list' was not valid UTF-8. pyscan caches the dependencies from pip with versions to be faster and the output it recieved was not valid UTF-8. You can turn this off via just using --cache-off [note: theres a chance pyscan might still fallback to using pip]"))?;
 
-    let version = output
-        .lines()
-        .find(|line| line.starts_with("Version: "))
-        .map(|line| line[9..].to_string());
-    
-    if let Some(v) = version { Ok(v)} 
-    else { Err(PipError("could not retrive package version from Pip".to_string())) }
+    let mut pip_list: HashMap<String, String> = HashMap::new();
+
+    for line in output_str.lines().skip(2) {
+        // Skip the first two lines
+        let split: Vec<&str> = line.split_whitespace().collect();
+        if split.len() >= 2 {
+            pip_list.insert(split[0].to_string(), split[1].to_string());
+        }
+    }
+
+    Ok(pip_list)
+}
+
+pub fn semver_parse(v: Vec<String>) -> Vec<Version> {
+    let mut cache: Vec<Version> = Vec::new();
+    for x in v {
+        let version = lenient_semver::Version::parse(x.as_str()).unwrap();
+        let b = Version::from(version);
+        cache.push(b)
+    }
+    cache
+}
+
+/// returns a hashmap<string, string> of (dependency name, version)
+pub fn vecdep_to_hashmap(v: &Vec<Dependency>) -> HashMap<String, String> {
+    let mut importmap: HashMap<String, String> = HashMap::new();
+
+    v.iter().for_each(|d| {
+        importmap.insert(d.name.clone(), d.version.as_ref().unwrap().clone());
+    });
+
+    importmap
+}
+/// caches package name, version data from 'pip list' in a hashmap for efficient lookup later. 
+pub struct PipCache {
+    cache: HashMap<String, String>,
+    cached: bool,
+}
+
+impl PipCache {
+    // initializes the cache, caches and returns itself. 
+    pub fn init() -> PipCache {
+        let pip_list = pip_list();
+        if let Ok(pl) = pip_list {
+            PipCache {
+                cache: pl,
+                cached: true
+            }
+        } else if let Err(e) = pip_list {
+            eprintln!("{e}");
+            exit(1)
+        } else {
+            exit(1)
+        }
+    }
+
+    // clears if cached, otherwise does nothing
+    pub fn _clear_cache(&mut self) {
+        if !self.cached {
+        } else {
+            self.cache.clear()
+        }
+    }
+
+    // Function to look up a package by name in cache
+    pub fn lookup(&self, package_name: &str) -> io::Result<String> {
+        match self.cache.get(package_name) {
+            Some(version) => Ok(version.to_string()),
+            None => Err(Error::new(
+                ErrorKind::NotFound,
+                "Package not found in pip",
+            )),
+        }
+    }
 }

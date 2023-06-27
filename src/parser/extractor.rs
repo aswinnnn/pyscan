@@ -6,7 +6,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use pep_508::{self, Spec};
-use super::structs::{Dependency};
+use super::structs::{Dependency, VersionStatus};
 use toml::Table;
 
 pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
@@ -20,7 +20,7 @@ pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
         let mat = x.as_str().to_string();
         let mat = mat.replacen("import", "", 1).trim().to_string();
 
-        imp.push(Dependency { name: mat, version: None, comparator: None })
+        imp.push(Dependency { name: mat, version: None, comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false} })
 
     }
 }
@@ -42,13 +42,13 @@ pub fn extract_imports_reqs(text: String, imp: &mut Vec<Dependency>) {
                     // for now.
                     let version = v.version.to_string();
                     let comparator = v.comparator;
-                    imp.push(Dependency{name: dname, version: Some(version), comparator: Some(comparator)});
+                    imp.push(Dependency{name: dname, version: Some(version), comparator: Some(comparator), version_status: VersionStatus {pypi: false, pip: false, source: true}});
                     break;
                 }
             }
         }
         else {
-            imp.push(Dependency{name: dname, version: None, comparator: None});
+            imp.push(Dependency{name: dname, version: None, comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false}});
         }
     }
 
@@ -64,7 +64,7 @@ pub fn extract_imports_pyproject(f: String, imp: &mut Vec<Dependency>) {
         .expect("Could not find the dependencies table in your pyproject.toml");
         for d in deps {
             let d = d.as_str().unwrap().to_string();
-            imp.push(Dependency { name: d, version: None, comparator: None })
+            imp.push(Dependency { name: d, version: None, comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false} })
 
         }
     }

@@ -8,7 +8,7 @@ use super::scanner;
 use structs::{FoundFile, FileTypes, FoundFileResult};
 
 
-pub fn scan_dir(dir: &Path) {
+pub async fn scan_dir(dir: &Path) {
     let mut result = FoundFileResult::new(); // contains found files
 
     if let Ok(entries) = fs::read_dir(dir) {
@@ -25,7 +25,7 @@ pub fn scan_dir(dir: &Path) {
                         filetype: FileTypes::Python,
                         path: OsString::from(entry.path())
                     });
-                    result.python();
+                    result.python(); // internal count of the file found
                 }
                 // requirements.txt
                 else if *"requirements.txt" == filename.clone() {
@@ -36,6 +36,15 @@ pub fn scan_dir(dir: &Path) {
                     });
                     result.reqs();
                 }
+                // constraints.txt
+                else if *"constraints.txt" == filename.clone() {
+                    result.add(FoundFile {
+                        name: filename,
+                        filetype: FileTypes::Constraints,
+                        path: OsString::from(entry.path())
+                    });
+                    result.constraints();
+                } 
                 // pyproject.toml
                 else if *"pyproject.toml" == filename.clone() {
                     result.add(FoundFile {
@@ -52,36 +61,40 @@ pub fn scan_dir(dir: &Path) {
 
     // --- find_import takes the result ---
 
-    find_import(result)
+    find_import(result).await
 
 
 }
 
 /// A nice abstraction over different ways to find imports for different filetypes.
-fn find_import(res: FoundFileResult) {
+async fn find_import(res: FoundFileResult) {
     let files = res.files;
     if res.reqs_found > res.pyproject_found {
         // if theres a requirements.txt and pyproject.toml isnt there
-        find_reqs_imports(&files)
+        find_reqs_imports(&files).await
     }
     else if res.reqs_found != 0 {
         // if both reqs and pyproject is present, go for reqs first
-        find_reqs_imports(&files)
+        find_reqs_imports(&files).await
+    }
+    else if res.constraints_found != 0 {
+        // since constraints and requirements have the same syntax, its okay to use the same parser.
+        find_reqs_imports(&files).await
     }
     else if res.pyproject_found != 0 {
         // use pyproject instead (if it exists)
-        find_pyproject_imports(&files)
+        find_pyproject_imports(&files).await
     }
     else if res.py_found != 0 {
         // make sure theres atleast one python file, then use that
-        find_python_imports(&files)
+        find_python_imports(&files).await
     }
     else {
         eprintln!("Could not find any requirements.txt, pyproject.toml or python files in this directory");
     }
 }
 
-fn find_python_imports(f: &Vec<FoundFile>) {
+async fn find_python_imports(f: &Vec<FoundFile>) {
     let cons = console::Term::stdout();
     cons.write_line("Using python file as source...").unwrap();
 
@@ -107,15 +120,16 @@ fn find_python_imports(f: &Vec<FoundFile>) {
     // println!("{:?}", imports.clone());
     cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
-    scanner::start(imports).unwrap(); // unwrapping is ok since the return value doesnt matter.
+    scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
 
 
 
 
 }
-fn find_reqs_imports(f: &Vec<FoundFile>) {
+
+async fn find_reqs_imports(f: &Vec<FoundFile>) {
     let cons = console::Term::stdout();
-    cons.write_line("Using requirements.txt as source...").unwrap();
+    cons.write_line("Using requirements.txt/constraints.txt as source...").unwrap();
 
     let mut imports = Vec::new();
     for file  in f {
@@ -135,15 +149,14 @@ fn find_reqs_imports(f: &Vec<FoundFile>) {
         }
     }
     // println!("{:?}", imports.clone());
-    cons.clear_last_lines(1).unwrap();
+    
     // --- pass the dependencies to the scanner/api ---
-    scanner::start(imports).unwrap();
+    scanner::start(imports).await.unwrap();
 }
 
-
-fn find_pyproject_imports(f: &Vec<FoundFile>) {
+async fn find_pyproject_imports(f: &Vec<FoundFile>) {
     let cons = console::Term::stdout();
-    cons.write_line("Using requirements.txt as source...").unwrap();
+    cons.write_line("Using pyproject.toml as source...").unwrap();
 
     let mut imports = Vec::new();
     for file  in f {
@@ -161,5 +174,5 @@ fn find_pyproject_imports(f: &Vec<FoundFile>) {
     // println!("{:?}", imports.clone());
     cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
-    scanner::start(imports).unwrap();
+    scanner::start(imports).await.unwrap();
 }
