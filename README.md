@@ -20,7 +20,7 @@
 ```bash
 > pip install pyscan-rs
 ```
-look out for the "-rs" part
+**look out for the "-rs"** part
 or
 
 ```bash
@@ -42,6 +42,8 @@ or
 ```
 
 ## Docker
+
+[WARNING: docker subcommand currently does not work, if you are installing pyscan solely for that purpose. It will be fixed and released in the next version. Thanks for the patience, people with actual jobs (i dont know anyone else who actually uses docker)]
 
 Pyscan can scan inside docker images given you provide the correct path inside. This is still in its early stage and may break easily.
 
@@ -69,12 +71,12 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 ## 🐰 Todo
 
-- [x] get it working.
-- [ ] add  tests. [coming soon]
-- [x] query individual python packages. [v0.1.1]
-- [ ] perfomance optimizations.
-- [x] scan docker images [v0.1.2]
-- [ ] scan code health. [coming soon]
+As of June 27, 2023:
+
+- [ ] Gather time to work on it (incredible task as a high schooler)
+- [ ] Multi-threading
+- [ ] Better display, search, filter of vulns
+- [ ] Plethora of output options (stick to >> for now)  
 
 ## 🐹 Sponsor
 

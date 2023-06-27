@@ -40,3 +40,26 @@ by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python fi
 
 - Fixed a grave error where docker command left remnants and did not perform a complete cleanup.
 - This release was made right after the previous release to fix this feature, however, the release page will contain both this message and the previous one so no one will miss out on the new stuff.
+
+## 0.1.4 (the "big" update)
+
+### Changes and New
+
+- BATCHED API! Pyscan is actually fast enough now. [#5]
+- Less panics and more user friendly errors.
+- Perfomance optimizations by some &s and better logic.
+- Support for constraints.txt [#4]
+- Introduced PipCache, which caches your pip package names and versions before the execution of the scanner to quickly lookup incase of a fallback
+- also, fallbacks! [#3] the order is: source > pip > pypi.org
+- it can be disabled with only sticking to `--pip` or `--pypi` or `--source`
+- exit non-zeros at vulns found and other important errors
+
+### Notes
+- I actually wanted to include multi-threaded batched requests to increase perfomance even more
+- but had to rush the update because everyone was installing the pathetic previous one. It's like hiding a golden apple that you can't show anyone. (except people who noticed the alpha branch) 
+- I will try not to rush updates and actually take things slow but thats hard when its recieving so much attention
+- [RealPython](realpython.com) featured this project on their podcast which was just amazing, and something that has never happened to me before.
+- Twitter and imageboards (the good ones) are giving pyscan so much love.
+- All the issue makers have led to some very awesome improvements, I fucking love open source.
+
+That's about it, check TODO for whats coming in the future.
