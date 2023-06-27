@@ -16,7 +16,7 @@ use std::env;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.1",about="python dependency vulnerability scanner.")]
+#[command(author="aswinnnn",version="0.1.4",about="python dependency vulnerability scanner.")]
 struct Cli {
 
     /// path to source. if not provided it will use the current directory.
@@ -50,7 +50,11 @@ struct Cli {
 
     /// Same as --pip except uses pypi.org to retrieve the latest version for the packages. 
     #[arg(long, required=false,action=clap::ArgAction::SetTrue)]
-    pypi: bool
+    pypi: bool,
+
+    /// turns off the caching of pip packages at the starting of execution.
+    #[arg(long="cache-off", required=false,action=clap::ArgAction::SetTrue)]
+    cache_off: bool,
     
 }
 
@@ -98,8 +102,10 @@ async fn main() {
     
     println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
-    // init pip cache
-    let _ = PIPCACHE.lookup("something");
+    // init pip cache, if cache-off is false
+    if !&ARGS.get().unwrap().cache_off {
+        let _ = PIPCACHE.lookup("something");
+    }
     // since its in Lazy its first accesss would init the cache, the result is ignorable.
 
     match &ARGS.get().unwrap().subcommand {
