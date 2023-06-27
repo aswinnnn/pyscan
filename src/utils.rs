@@ -30,7 +30,7 @@ pub fn get_time() -> String {
 }
 
 pub fn get_version() -> String {
-    "0.1.3".to_string()
+    "0.1.4".to_string()
 }
 
 pub fn _reqwest_send(method: &str, url: String) -> Option<Response> {
