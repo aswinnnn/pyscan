@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 
 use crate::parser::structs::ScannedDependency;
 
-static CONS: Lazy<Term> = Lazy::new(|| Term::stdout());
+static CONS: Lazy<Term> = Lazy::new(Term::stdout);
 
 pub struct Progress {
     // this progress info only contains progress info about the found vulns.

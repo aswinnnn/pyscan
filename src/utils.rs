@@ -254,7 +254,7 @@ impl PipCache {
     }
 
     // clears if cached, otherwise does nothing
-    pub fn clear_cache(&mut self) {
+    pub fn _clear_cache(&mut self) {
         if !self.cached {
         } else {
             self.cache.clear()

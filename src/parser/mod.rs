@@ -70,23 +70,23 @@ pub async fn scan_dir(dir: &Path) {
 async fn find_import(res: FoundFileResult) {
     let files = res.files;
     if res.reqs_found > res.pyproject_found {
-        /// if theres a requirements.txt and pyproject.toml isnt there
+        // if theres a requirements.txt and pyproject.toml isnt there
         find_reqs_imports(&files).await
     }
     else if res.reqs_found != 0 {
-        /// if both reqs and pyproject is present, go for reqs first
+        // if both reqs and pyproject is present, go for reqs first
         find_reqs_imports(&files).await
     }
     else if res.constraints_found != 0 {
-        /// since constraints and requirements have the same syntax, its okay to use the same parser.
+        // since constraints and requirements have the same syntax, its okay to use the same parser.
         find_reqs_imports(&files).await
     }
     else if res.pyproject_found != 0 {
-        /// use pyproject instead (if it exists)
+        // use pyproject instead (if it exists)
         find_pyproject_imports(&files).await
     }
     else if res.py_found != 0 {
-        /// make sure theres atleast one python file, then use that
+        // make sure theres atleast one python file, then use that
         find_python_imports(&files).await
     }
     else {

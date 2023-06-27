@@ -6,7 +6,7 @@ use crate::{
     scanner::models::Vuln,
 };
 use reqwest::{self, Client, Method};
-use std::collections::HashMap;
+
 use std::process::exit;
 use super::{
     super::utils,
@@ -53,7 +53,7 @@ impl Osv {
         }
     }
 
-    pub async fn query(&self, d: Dependency) -> Option<Vulnerability> {
+    pub async fn _query(&self, d: Dependency) -> Option<Vulnerability> {
         // returns None if no vulns found
         // else Some(Vulnerability)
 
@@ -76,7 +76,7 @@ impl Osv {
         
         // println!("{:?}", res);
 
-        self.get_json(d.name.as_str(), &version.unwrap()).await
+        self._get_json(d.name.as_str(), &version.unwrap()).await
     }
 
     pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> Vec<ScannedDependency> {
@@ -182,7 +182,7 @@ impl Osv {
         }
     }
 
-    pub async fn get_json(&self, name: &str, version: &str) -> Option<Vulnerability> {
+    pub async fn _get_json(&self, name: &str, version: &str) -> Option<Vulnerability> {
         let url = r"https://api.osv.dev/v1/query";
 
         let body = Query::new(version, name); // struct implementation of query sent to OSV API.

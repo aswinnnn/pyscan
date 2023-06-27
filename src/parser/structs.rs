@@ -98,7 +98,7 @@ pub struct VersionStatus {
 /// implementation for VersionStatus which can get return versions while updating the status, also pick the one decided via arguments, a nice abstraction really.
 impl VersionStatus {
     /// retreives versions from pip and pypi.org in (pip, pypi) format.
-    pub fn full_check(&mut self, name: &str) -> (String, String) {
+    pub fn _full_check(&mut self, name: &str) -> (String, String) {
         let pip = utils::get_python_package_version(name);
         let pip_v = if let Err(e) = pip {
             println!("An error occurred while retrieving version info from pip.\n{e}");
