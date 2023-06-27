@@ -73,13 +73,13 @@ impl Osv {
         };
         // println!("{:?}", self.get_latest_package_version(d.name.clone()));
 
-        let res = self.get_json(d.name.as_str(), &version.unwrap()).await;
+        
         // println!("{:?}", res);
 
-        res
+        self.get_json(d.name.as_str(), &version.unwrap()).await
     }
 
-    pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> (Vec<ScannedDependency>, HashMap<String, String>) {
+    pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> Vec<ScannedDependency> {
         // runs the batch API. Each dep is converted into JSON format here, POSTed, and the response of vuln IDs -> queried into Vec<Vulnerability> -> returned as Vec<ScannedDependency>
         // The dep version conflicts are also solved over here.
         let _ = deps
@@ -95,7 +95,7 @@ impl Osv {
 
         let mut progress = display::Progress::new();
 
-        let imports_info = utils::vecdep_to_hashmap(&deps);
+        let mut imports_info = utils::vecdep_to_hashmap(&deps);
 
         let url = "https://api.osv.dev/v1/querybatch";
 
@@ -137,7 +137,8 @@ impl Osv {
                     }
                     else {continue;}
                 }
-                (scanneddeps, imports_info)
+                display::display_queried(&scanneddeps, &mut imports_info);
+                scanneddeps
             } else {
                 eprintln!("Invalid parse of API reponse at src/scanner/api.rs::query_batched");
                 exit(1);
@@ -168,7 +169,7 @@ impl Osv {
             if let Ok(p) = parsed {
                 p
             } else if let Err(e) = parsed {
-                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::vuln_id\n{}", e.to_string());
+                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::vuln_id\n{}", e);
                 exit(1);
             }
             else {
