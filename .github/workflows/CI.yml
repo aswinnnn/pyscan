@@ -26,6 +26,8 @@ jobs:
         target: [x86_64, x86, aarch64, armv7, s390x, ppc64le]
     steps:
       - uses: actions/checkout@v3
+      - name: Install pkg-config and libssl
+        run: sudo apt install pkg-config && sudo apt install libssl-dev 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -33,8 +35,6 @@ jobs:
           args: --release --out dist
           sccache: 'true'
           manylinux: auto
-      - name: Install pkg-config and libssl
-        run: sudo apt install pkg-config && sudo apt install libssl-dev 
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
