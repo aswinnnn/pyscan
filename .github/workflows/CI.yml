@@ -23,24 +23,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64, x86, aarch64]
+        target: [x86_64, x86, aarch64, armv7, s390x, ppc64le]
     steps:
       - uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
         with:
-          toolchain: stable
-          profile: minimal
-      - name: Install Python
-        uses: actions/setup-python@v4
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          sccache: 'true'
+          manylinux: auto
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
         with:
-          python-version: 3.9
-      - name: install pip
-        run: sudo apt install python3-pip
-      - name: Installation check rust
-        run: cargo install pyscan
-      - name: Installation check pip
-        run: pip install pyscan
+          name: wheels
+          path: dist
 
   windows:
     runs-on: windows-latest
@@ -94,3 +91,20 @@ jobs:
         with:
           name: wheels
           path: dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [linux, windows, macos, sdist]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: wheels
+      - name: Publish to PyPI
+        uses: PyO3/maturin-action@v1
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        with:
+          command: upload
+          args: --skip-existing *
