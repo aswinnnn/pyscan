@@ -63,6 +63,11 @@ Here's the order of precedence for a "source" file:
 
 Pyscan will find dependency versions from `pip` if not provided within the source file. Even though, **Make sure you version-ize your requirements** and use proper [pep-508 syntax](https://peps.python.org/pep-0508/).
 
+## Building 
+
+pyscan requires a rust version of `< v1.70`, as it uses `once_cell` which is unstable on previous releases.
+There's an overview of the codebase coming soon for people who wanna contribute. Appreciate all the help so far.
+
 ## 🦀 Note
 
 pyscan uses [OSV](https://osv.dev) as its database for now. There are plans to add a few more.
@@ -76,7 +81,8 @@ As of June 27, 2023:
 - [ ] Gather time to work on it (incredible task as a high schooler)
 - [ ] Multi-threading
 - [ ] Better display, search, filter of vulns
-- [ ] Plethora of output options (stick to >> for now)  
+- [ ] Plethora of output options (stick to >> for now)
+- [ ] Architecture write-up  
 
 ## 🐹 Sponsor
 
