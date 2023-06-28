@@ -4,7 +4,9 @@
 
 <h4 align="center"> 
 
-<img src="https://media.discordapp.net/attachments/1002212458502557718/1107648562004758538/pyscan.png?width=779&height=206">
+<!-- <img src="https://media.discordapp.net/attachments/1002212458502557718/1107648562004758538/pyscan.png?width=779&height=206"> -->
+
+<img src="./assets/pyscan.png?width=779&height=206">
 
 </h4>
 
@@ -82,7 +84,7 @@ As of June 27, 2023:
 - [ ] Multi-threading
 - [ ] Better display, search, filter of vulns
 - [ ] Plethora of output options (stick to >> for now)
-- [ ] Architecture write-up  
+- [x] Architecture write-up  
 
 ## 🐹 Sponsor
 
