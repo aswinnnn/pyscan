@@ -31,7 +31,8 @@ jobs:
       - name: Setup Rust
         uses: ATiltedTree/setup-rust@v1.0.5
         with:
-         rust-version: 1.70
+         rust-version: stable
+         components: cargo
       - name: Install maturin and build
         run: pip install maturin && maturin build --release --out dist
   windows:
