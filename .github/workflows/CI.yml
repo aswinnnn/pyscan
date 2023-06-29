@@ -25,6 +25,7 @@ jobs:
       matrix:
         target: [x86_64, aarch64, armv7]
     steps:
+      - uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v3.1.4
       - name: Setup Rust
