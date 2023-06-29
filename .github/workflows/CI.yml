@@ -25,20 +25,14 @@ jobs:
       matrix:
         target: [x86_64, aarch64, armv7]
     steps:
-      - uses: actions/checkout@v3 
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
+      - name: Setup Python
+        uses: actions/setup-python@v3.1.4
+      - name: Setup Rust
+        uses: ATiltedTree/setup-rust@v1.0.5
         with:
-          target: ${{ matrix.target }}
-          args: --release --out dist
-          sccache: 'true'
-          manylinux: auto
-      - name: Upload wheels
-        uses: actions/upload-artifact@v3
-        with:
-          name: wheels
-          path: dist
-
+         rust-version: 1.70
+      - name: Install maturin and build
+        run: pip install maturin && maturin build --release --out dist
   windows:
     runs-on: windows-latest
     strategy:
