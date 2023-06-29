@@ -12,21 +12,21 @@
 
 <h5 align="center"> <i>A dependency vulnerability scanner for your python projects, straight from the terminal.</i> </h5>
 
-+ 🚀 blazingly fast scanner that can be used within large projects quickly.
-+ 🤖 automatically uses `requirements.txt`, `pyproject.toml` or, the source code.
++ 🚀 blazingly fast scanner that can be used within large projects. (see [benchmarks](BENCHMARKS.md))
++ 🤖 automatically finds `requirements.txt`, `pyproject.toml` or, the source code.
 + 🧑‍💻 can be integrated into existing build processes.
-+ 💽 In its alpha stage, some features may not work correctly. PRs and issue makers welcome.
++ 💽 In its early stage, thus hasn't been battle-hardened yet. PRs and issue makers welcome.
 
 ## 🕊️ Install
 
 ```bash
-> pip install pyscan-rs
+pip install pyscan-rs
 ```
 **look out for the "-rs"** part
 or
 
 ```bash
-> cargo install pyscan
+cargo install pyscan
 ```
 
 check out the [releases](https://github.com/aswinnnn/pyscan/releases).
@@ -43,7 +43,7 @@ or
 > pyscan -d path/to/src
 ```
 
-## Docker
+<!-- ## Docker
 
 [WARNING: docker subcommand currently does not work, if you are installing pyscan solely for that purpose. It will be fixed and released in the next version. Thanks for the patience, people with actual jobs (i dont know anyone else who actually uses docker)]
 
@@ -54,36 +54,38 @@ Pyscan can scan inside docker images given you provide the correct path inside. 
 ```
 
 by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python files.
-Note: Your docker engine/daemon should be running as pyscan utilizes the `docker create` command. 
+Note: Your docker engine/daemon should be running as pyscan utilizes the `docker create` command.  -->
 
 <br>
-Here's the order of precedence for a "source" file:
+
+Here's the order of precedence for a source/config file:
 
 + `requirements.txt`
 + `pyproject.toml`
-+ your python source code (`.py`) [highly discouraged]
++ your source code (`.py`)
 
-Pyscan will find dependency versions from `pip` if not provided within the source file. Even though, **Make sure you version-ize your requirements** and use proper [pep-508 syntax](https://peps.python.org/pep-0508/).
+Pyscan will use `pip` to find unknown versions, otherwise [pypi.org](https://pypi.org). Still, **Make sure you version-ize your requirements** and use proper [pep-508 syntax](https://peps.python.org/pep-0508/).
 
-## Building 
+## Building
 
-pyscan requires a rust version of `< v1.70`, as it uses `once_cell` which is unstable on previous releases.
-There's an overview of the codebase coming soon for people who wanna contribute. Appreciate all the help so far.
+pyscan requires a rust version of `< v1.70`, and might be unstable on previous releases.
+There's an overview of the codebase at [architecture](./architecture/). Grateful for all the contributions so far!
 
-## 🦀 Note
+## 🦀 How it's done
 
-pyscan uses [OSV](https://osv.dev) as its database for now. There are plans to add a few more.
+pyscan uses [OSV](https://osv.dev) as its database for now. There are plans to add a few more, given its feasible.
 
-pyscan doesn't make sure your code is safe from everything. Use all resources available to you like Dependabot, `pip-audit` or trivy.
+pyscan doesn't make sure your code is safe from everything. Use all resources available to you like Dependabot, `pip-audit`, trivy and the likes.
 
 ## 🐰 Todo
 
-As of June 27, 2023:
+As of June 29, 2023:
 
 - [ ] Gather time to work on it (incredible task as a high schooler)
 - [ ] Multi-threading
 - [ ] Better display, search, filter of vulns
 - [ ] Plethora of output options (stick to >> for now)
+- [x] Benchmarks
 - [x] Architecture write-up  
 
 ## 🐹 Sponsor
