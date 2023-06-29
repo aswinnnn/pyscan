@@ -32,7 +32,7 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist
           sccache: 'true'
-          manylinux: auto
+          manylinux: manylinux_2_24
           docker-options: pip install pyOpenSSL
 #           docker-options: apt-get -y update && apt-get -y install curl && apt-get -y bash && curl https://raw.githubusercontent.com/pypa/manylinux/main/docker/build_scripts/build-openssl.sh | bash
       - name: Upload wheels
