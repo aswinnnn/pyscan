@@ -33,7 +33,7 @@ jobs:
           args: --release --out dist
           sccache: 'true'
           manylinux: auto
-          docker-options: sudo apt install pkg-config && sudo apt install libssl-dev
+          docker-options: curl https://raw.githubusercontent.com/pypa/manylinux/main/docker/build_scripts/build-openssl.sh | bash
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
