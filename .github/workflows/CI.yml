@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64, x86, aarch64, armv7, s390x, ppc64le]
+        target: [x86_64, aarch64, armv7]
     steps:
       - uses: actions/checkout@v3 
       - name: Build wheels
@@ -32,9 +32,7 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --out dist
           sccache: 'true'
-          manylinux: manylinux_2_24
-          docker-options: .venv/bin/pip install pyOpenSSL
-#           docker-options: apt-get -y update && apt-get -y install curl && apt-get -y bash && curl https://raw.githubusercontent.com/pypa/manylinux/main/docker/build_scripts/build-openssl.sh | bash
+          manylinux: auto
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
