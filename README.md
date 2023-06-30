@@ -68,7 +68,7 @@ Pyscan will use `pip` to find unknown versions, otherwise [pypi.org](https://pyp
 
 ## Building
 
-pyscan requires a rust version of `< v1.70`, and might be unstable on previous releases.
+pyscan requires a rust version of `=> v1.70`, and might be unstable on previous releases.
 There's an overview of the codebase at [architecture](./architecture/). Grateful for all the contributions so far!
 
 ## 🦀 How it's done
