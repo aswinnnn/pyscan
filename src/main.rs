@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use utils::PipCache;
+use utils::{PipCache, SysInfo};
 
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
@@ -97,13 +97,17 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
 
 
+static SYS_INFO: Lazy<SysInfo> = Lazy::new(|| {SysInfo::new()});
+// useful info to have throughout the execution of the program, mainly for pip and pypi usage.
+
+
 #[tokio::main]
 async fn main() {
     
     println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
-    // init pip cache, if cache-off is false
-    if !&ARGS.get().unwrap().cache_off {
+    // init pip cache, if cache-off is false or pip is successfully detected
+    if !&ARGS.get().unwrap().cache_off | SYS_INFO.pip_found {
         let _ = PIPCACHE.lookup("something");
     }
     // since its in Lazy its first accesss would init the cache, the result is ignorable.

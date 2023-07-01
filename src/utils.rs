@@ -9,7 +9,7 @@ use std::{
     boxed::Box,
     collections::HashMap,
     io::{self, ErrorKind, Error},
-    str
+    str, env
 };
 
 pub fn get_time() -> String {
@@ -156,8 +156,7 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
         let restext = if let Ok(r) = restext {
             r
         } else {
-            eprintln!("Failed to connect to pypi.org");
-            exit(1)
+            return Err(PypiError("Failed to connect to pypi.org".to_string()))
         };
         // println!("{:#?}", restext.clone());
 
@@ -176,7 +175,11 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
         };
         version
     } else {
-        exit(1)
+        if res.is_err() {
+            res.map_err(|e| {return PypiError(e.to_string())});
+            exit(1)
+        }
+        else {exit(1)} // this is dangerous err handling, unhappy with it
     };
 
     Ok(Box::new(if let Err(e) = version {
@@ -270,5 +273,28 @@ impl PipCache {
                 "Package not found in pip",
             )),
         }
+    }
+}
+
+// useful info to have during the entire execution of the program.
+pub struct SysInfo<'a> {
+    pub os: &'a str, // derived from std::env::consts::OS
+    pub pip_found: bool,
+    pub pypi_found: bool,
+}
+
+impl<'a> SysInfo<'a> {
+    pub fn new() -> SysInfo<'a> {
+        let pip_found: bool = match pip_list() {
+            Ok(_) => true,
+            Err(_) => false
+        };
+
+        let pypi_found: bool = match get_package_version_pypi("requests") {
+            Ok(_) => true,
+            Err(_) => false
+        };
+        
+        SysInfo { os: env::consts::OS, pip_found, pypi_found }
     }
 }
