@@ -63,9 +63,28 @@ pub fn extract_imports_pyproject(f: String, imp: &mut Vec<Dependency>) {
         let deps = deps.as_array()
         .expect("Could not find the dependencies table in your pyproject.toml");
         for d in deps {
-            let d = d.as_str().unwrap().to_string();
-            imp.push(Dependency { name: d, version: None, comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false} })
+            let d = d.as_str().unwrap();
+            let parsed = pep_508::parse(d);
+            if  let Ok(dep) = parsed {
+                let dname = dep.name.to_string();
+                // println!("{:?}", dep.clone());
+                if let Some(ver) = dep.spec {
+                    if let Spec::Version(verspec) = ver {
+                        for v in verspec {
+                            // pyscan only takes the first version spec found for the dependency
+                            // for now.
+                            let version = v.version.to_string();
+                            let comparator = v.comparator;
+                            imp.push(Dependency{name: dname, version: Some(version), comparator: Some(comparator), version_status: VersionStatus {pypi: false, pip: false, source: true}});
+                            break;
+                        }
+                    }
+                }
+                else {
+                    imp.push(Dependency{name: dname, version: None, comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false}});
+                }
 
         }
+    }
     }
 }

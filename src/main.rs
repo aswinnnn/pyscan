@@ -104,9 +104,11 @@ static SYS_INFO: Lazy<SysInfo> = Lazy::new(|| {SysInfo::new()});
 #[tokio::main]
 async fn main() {
     
-    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
+    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());
+    // init SYS_INFO
+    let _ = SYS_INFO.os;  
 
-    // init pip cache, if cache-off is false or pip is successfully detected
+    // init pip cache, if cache-off is false or pip is successfully detected:
     if !&ARGS.get().unwrap().cache_off | SYS_INFO.pip_found {
         let _ = PIPCACHE.lookup("something");
     }
