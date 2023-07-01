@@ -176,7 +176,7 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
         version
     } else {
         if res.is_err() {
-            res.map_err(|e| {return PypiError(e.to_string())});
+            let _ = res.map_err(|e| {return PypiError(e.to_string())});
             exit(1)
         }
         else {exit(1)} // this is dangerous err handling, unhappy with it
