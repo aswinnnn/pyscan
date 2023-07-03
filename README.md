@@ -75,7 +75,7 @@ There's an overview of the codebase at [architecture](./architecture/). Grateful
 
 pyscan uses [OSV](https://osv.dev) as its database for now. There are plans to add a few more, given its feasible.
 
-pyscan doesn't make sure your code is safe from everything. Use all resources available to you like Dependabot, `pip-audit`, trivy and the likes.
+pyscan doesn't make sure your code is safe from everything. Use all resources available to you like [safety](https://pypi.org/project/safety/) Dependabot, [`pip-audit`](https://pypi.org/project/pip-audit/), trivy and the likes.
 
 ## 🐰 Todo
 
