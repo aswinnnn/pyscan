@@ -9,7 +9,7 @@ use std::{
     boxed::Box,
     collections::HashMap,
     io::{self, ErrorKind, Error},
-    str, env
+    str
 };
 
 pub fn get_time() -> String {

@@ -11,7 +11,6 @@ mod docker;
 mod display;
 use std::env;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
-use tokio::sync::OnceCell;
 
 #[derive(Parser, Debug)]
 #[command(author="aswinnnn",version="0.1.5",about="python dependency vulnerability scanner.")]
@@ -103,7 +102,7 @@ async fn main() {
     // supposed to be a global static, cant atm due to async errors
     // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
 
-    // init pip cache, if cache-off is false
+    // init pip cache, if cache-off is false or pip has been found
     if !&ARGS.get().unwrap().cache_off | sys_info.unwrap().pip_found { 
             let _ = PIPCACHE.lookup("something");
     }

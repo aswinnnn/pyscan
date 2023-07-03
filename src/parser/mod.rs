@@ -120,9 +120,7 @@ async fn find_python_imports(f: &Vec<FoundFile>) {
     // println!("{:?}", imports.clone());
     // cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
-    let _ = tokio::task::spawn(async {
-        scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
-    }).await;
+    scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
 
 }
 
@@ -150,10 +148,7 @@ async fn find_reqs_imports(f: &Vec<FoundFile>) {
     // println!("{:?}", imports.clone());
     
     // --- pass the dependencies to the scanner/api ---
-    // scanner::start(imports).await.unwrap();
-    let _ = tokio::task::spawn(async {
-        scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
-    }).await;
+    scanner::start(imports).await.unwrap();
 }
 
 async fn find_pyproject_imports(f: &Vec<FoundFile>) {
@@ -176,8 +171,5 @@ async fn find_pyproject_imports(f: &Vec<FoundFile>) {
     // println!("{:?}", imports.clone());
     // cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
-    // scanner::start(imports).await.unwrap();
-    let _ = tokio::task::spawn(async {
-        scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
-    }).await;
+    scanner::start(imports).await.unwrap();
 }
