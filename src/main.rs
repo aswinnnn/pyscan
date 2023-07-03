@@ -1,7 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use utils::{PipCache, SysInfo};
-
+use utils::PipCache;
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
 use console::style;
@@ -10,9 +9,7 @@ mod parser;
 mod scanner;
 mod docker;
 mod display;
-
 use std::env;
-
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
 
 #[derive(Parser, Debug)]
@@ -97,19 +94,13 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
 
 
-static SYS_INFO: Lazy<SysInfo> = Lazy::new(|| {SysInfo::new()});
-// useful info to have throughout the execution of the program, mainly for pip and pypi usage.
-
-
 #[tokio::main]
 async fn main() {
     
-    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());
-    // init SYS_INFO
-    let _ = SYS_INFO.os;  
+    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
-    // init pip cache, if cache-off is false or pip is successfully detected:
-    if !&ARGS.get().unwrap().cache_off | SYS_INFO.pip_found {
+    // init pip cache, if cache-off is false
+    if !&ARGS.get().unwrap().cache_off {
         let _ = PIPCACHE.lookup("something");
     }
     // since its in Lazy its first accesss would init the cache, the result is ignorable.
@@ -126,7 +117,7 @@ async fn main() {
             // start() from scanner only accepts Vec<Dependency> so
             let vdep = vec![dep];
 
-            let _res = scanner::start(vdep);
+            let _res = scanner::start(vdep).await;
             exit(0)
 
         },
