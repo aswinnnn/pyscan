@@ -85,6 +85,7 @@ As of June 29, 2023:
 - [ ] Multi-threading
 - [ ] Better display, search, filter of vulns
 - [ ] Plethora of output options (stick to >> for now)
+- [ ] ignore vulnerabilities
 - [x] Benchmarks
 - [x] Architecture write-up  
 
