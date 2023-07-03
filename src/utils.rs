@@ -277,14 +277,13 @@ impl PipCache {
 }
 
 // useful info to have during the entire execution of the program.
-pub struct SysInfo<'a> {
-    pub os: &'a str, // derived from std::env::consts::OS
+pub struct SysInfo {
     pub pip_found: bool,
     pub pypi_found: bool,
 }
 
-impl<'a> SysInfo<'a> {
-    pub fn new() -> SysInfo<'a> {
+impl SysInfo {
+    pub fn new() -> SysInfo {
         let pip_found: bool = match pip_list() {
             Ok(_) => true,
             Err(_) => false
@@ -295,6 +294,7 @@ impl<'a> SysInfo<'a> {
             Err(_) => false
         };
         
-        SysInfo { os: env::consts::OS, pip_found, pypi_found }
+        SysInfo { pip_found, pypi_found } 
+        // currently set to unknown due to a tokio runtime error
     }
 }

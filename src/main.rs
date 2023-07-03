@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use utils::PipCache;
+use utils::{PipCache, SysInfo};
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
 use console::style;
@@ -11,6 +11,7 @@ mod docker;
 mod display;
 use std::env;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
+use tokio::sync::OnceCell;
 
 #[derive(Parser, Debug)]
 #[command(author="aswinnnn",version="0.1.5",about="python dependency vulnerability scanner.")]
@@ -93,15 +94,18 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 // is a hashmap of package name, version from 'pip list'
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
 
-
 #[tokio::main]
 async fn main() {
     
     println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
+    let sys_info =  tokio::task::spawn_blocking(|| {SysInfo::new()}).await;
+    // supposed to be a global static, cant atm due to async errors
+    // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
+
     // init pip cache, if cache-off is false
-    if !&ARGS.get().unwrap().cache_off {
-        let _ = PIPCACHE.lookup("something");
+    if !&ARGS.get().unwrap().cache_off | sys_info.unwrap().pip_found { 
+            let _ = PIPCACHE.lookup("something");
     }
     // since its in Lazy its first accesss would init the cache, the result is ignorable.
 
