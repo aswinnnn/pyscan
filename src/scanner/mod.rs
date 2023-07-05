@@ -1,5 +1,7 @@
 pub mod api;
 pub mod models;
+use std::process::exit;
+
 use crate::display;
 use super::parser::structs::Dependency;
 use console::{Term, style};
@@ -20,7 +22,12 @@ pub async fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
     display::display_summary(&collected)?;
     
     // if everything went fine:
-    Ok(()) // !!
+    if !collected.is_empty() {
+        exit(1)
+    }
+    else {
+        Ok(()) // if collected is zero means no vulns found, no need for a non-zero exit code.
+    }
 }
 
 
