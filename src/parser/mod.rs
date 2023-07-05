@@ -109,7 +109,7 @@ async fn find_python_imports(f: &Vec<FoundFile>) {
                 for line in reader.lines() {
     
                     if let Ok(l) = line {
-                        cons.clear_last_lines(1).unwrap();
+                        // cons.clear_last_lines(1).unwrap();
                         extractor::extract_imports_python(l, &mut imports);
     
                     }
@@ -118,12 +118,9 @@ async fn find_python_imports(f: &Vec<FoundFile>) {
         } 
     }
     // println!("{:?}", imports.clone());
-    cons.clear_last_lines(1).unwrap();
+    // cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
     scanner::start(imports).await.unwrap(); // unwrapping is ok since the return value doesnt matter.
-
-
-
 
 }
 
@@ -172,7 +169,7 @@ async fn find_pyproject_imports(f: &Vec<FoundFile>) {
         }
     }
     // println!("{:?}", imports.clone());
-    cons.clear_last_lines(1).unwrap();
+    // cons.clear_last_lines(1).unwrap();
     // --- pass the dependencies to the scanner/api ---
     scanner::start(imports).await.unwrap();
 }
