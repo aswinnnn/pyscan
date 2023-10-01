@@ -98,12 +98,12 @@ async fn main() {
     
     println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
 
-    let sys_info =  tokio::task::spawn_blocking(|| {SysInfo::new()}).await;
+    let sys_info =  SysInfo::new().await;
     // supposed to be a global static, cant atm due to async errors
     // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
 
     // init pip cache, if cache-off is false or pip has been found
-    if !&ARGS.get().unwrap().cache_off | sys_info.unwrap().pip_found { 
+    if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
             let _ = PIPCACHE.lookup("something");
     }
     // since its in Lazy its first accesss would init the cache, the result is ignorable.
@@ -113,7 +113,7 @@ async fn main() {
 
         Some(SubCommand::Package { name, version }) => {
             // let osv = Osv::new().expect("Cannot access the API to get the latest package version.");
-            let version = if let Some(v) = version {v.to_string()} else {utils::get_package_version_pypi(name.as_str()).expect("Error in retrieving stable version from API").to_string()};
+            let version = if let Some(v) = version {v.to_string()} else {utils::get_package_version_pypi(name.as_str()).await.expect("Error in retrieving stable version from API").to_string()};
 
             let dep = Dependency {name: name.to_string(), version: Some(version), comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false}};
             

@@ -104,7 +104,7 @@ pub struct VersionStatus {
 /// implementation for VersionStatus which can get return versions while updating the status, also pick the one decided via arguments, a nice abstraction really.
 impl VersionStatus {
     /// retreives versions from pip and pypi.org in (pip, pypi) format.
-    pub fn _full_check(&mut self, name: &str) -> (String, String) {
+    pub async fn _full_check(&mut self, name: &str) -> (String, String) {
         let pip = utils::get_python_package_version(name);
         let pip_v = if let Err(e) = pip {
             println!("An error occurred while retrieving version info from pip.\n{e}");
@@ -113,7 +113,7 @@ impl VersionStatus {
             pip.unwrap()
         };
 
-        let pypi = utils::get_package_version_pypi(name);
+        let pypi = utils::get_package_version_pypi(name).await;
         let pypi_v = if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");
             exit(1)
@@ -138,8 +138,8 @@ impl VersionStatus {
         }
     }
 
-    pub fn pypi(name: &str) -> String {
-        let pypi = utils::get_package_version_pypi(name);
+    pub async fn pypi(name: &str) -> String {
+        let pypi = utils::get_package_version_pypi(name).await;
 
         if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");
@@ -150,11 +150,11 @@ impl VersionStatus {
     }
 
     /// returns the chosen version (from args or fallback)
-    pub fn choose(name: &str, dversion: &Option<String>) -> String {
+    pub async fn choose(name: &str, dversion: &Option<String>) -> String {
         if ARGS.get().unwrap().pip {
             VersionStatus::pip(name)
         } else if ARGS.get().unwrap().pypi {
-            VersionStatus::pypi(name)
+            VersionStatus::pypi(name).await
         } else {
             // fallback begins here once made sure no arguments are provided
             let d_version = if let Some(provided) = dversion {
@@ -162,7 +162,7 @@ impl VersionStatus {
             } else if let Ok(v) = utils::get_python_package_version(name) {
                 println!("{} : {}",style(name).yellow().dim(), style("A version could not be detected in the source file, so retrieving version from pip instead.").dim());
                 Some(v)
-            } else if let Ok(v) = utils::get_package_version_pypi(name) {
+            } else if let Ok(v) = utils::get_package_version_pypi(name).await {
                 println!("{} : {}",style(name).red().dim(), style("A version could not be detected through source or pip, so retrieving latest version from pypi.org instead.").dim());
                 Some(v.to_string())
             } else {

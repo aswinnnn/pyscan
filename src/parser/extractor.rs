@@ -199,7 +199,7 @@ pub fn extract_imports_pyproject(
 ) -> Result<(), Error> {
     // Parse the toml content into a Value
     let toml_value: Value = toml::from_str(toml_content.as_str())?;
-    println!("{:#?}",toml_value);
+    // println!("{:#?}",toml_value);
 
     // Helper function to extract dependency values (version strings) including nested tables
     fn extract_dependencies(table: &toml::value::Table, poetry: Option<bool>) -> Result<Vec<String>, Error> {
@@ -277,13 +277,9 @@ pub fn extract_imports_pyproject(
 
     for key in keys_to_check {
         if key.contains("tool") {
-            println!("contains tool");
             
             if let Some(dependencies_table) = toml_value.get("tool") {
-                println!("contains tool");
                 if let Some(dependencies_table) = dependencies_table.get("poetry") {
-                    println!("contains poetry");
-                    println!("{:#?}",dependencies_table);
                     let poetrylevel: Vec<&str> = vec!["dependencies", "dev-dependencies"];
                     for k in poetrylevel.into_iter() {
                         if let Some(dep) = dependencies_table.get(k) {
@@ -308,7 +304,6 @@ pub fn extract_imports_pyproject(
         }
         else if !key.contains("poetry") {
 
-            println!("contains shit");
             if let Some(dependencies_table) = toml_value.get(key) {
                 if let Some(dependencies) = dependencies_table.as_table() {
                         all_dependencies.extend(extract_dependencies(dependencies, None)?);
@@ -316,7 +311,9 @@ pub fn extract_imports_pyproject(
             }
         }
     }
-    println!("{:#?}", all_dependencies);
+    // the toml might contain repeated dependencies 
+    // for different tools, dev tests, etc.
+    all_dependencies.dedup(); 
 
     for d in all_dependencies {
         let d = d.as_str();

@@ -1,15 +1,15 @@
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,
-    blocking::{Client, Response},
+    {Client, Response},
     Method,
 };
 use semver::Version;
 use std::{
     boxed::Box,
     collections::HashMap,
-    io::{self, ErrorKind, Error},
-    str
+    io::{self, Error, ErrorKind},
+    str,
 };
 
 pub fn get_time() -> String {
@@ -33,10 +33,10 @@ pub fn get_version() -> String {
     "0.1.5".to_string()
 }
 
-pub fn _reqwest_send(method: &str, url: String) -> Option<Response> {
+pub async fn _reqwest_send(method: &str, url: String) -> Option<Response> {
     // for easily sending web requests
 
-    let client = reqwest::blocking::Client::builder()
+    let client = reqwest::Client::builder()
         .user_agent(format!("pyscan v{}", get_version()))
         .build();
 
@@ -53,7 +53,7 @@ pub fn _reqwest_send(method: &str, url: String) -> Option<Response> {
                 Method::GET
             }
         };
-        let res = client.request(method, url).send();
+        let res = client.request(method, url).send().await;
 
         if let Ok(success) = res {
             Some(success)
@@ -91,24 +91,25 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
 
     // check cache first
     if PIPCACHE.cached {
-        let version = PIPCACHE.lookup(package).map_err(|e| {PipError(e.to_string())})?;
+        let version = PIPCACHE
+            .lookup(package)
+            .map_err(|e| PipError(e.to_string()))?;
         Ok(version)
-    }
-    else {
+    } else {
         let output = Command::new("pip")
             .arg("show")
             .arg(package)
             .output()
             .map_err(|e| PipError(e.to_string()))?;
-    
+
         let output = output.stdout;
         let output = String::from_utf8(output).map_err(|e| PipError(e.to_string()))?;
-    
+
         let version = output
             .lines()
             .find(|line| line.starts_with("Version: "))
             .map(|line| line[9..].to_string());
-    
+
         if let Some(v) = version {
             Ok(v)
         } else {
@@ -117,7 +118,6 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
             ))
         }
     }
-
 }
 
 #[derive(Debug)]
@@ -139,24 +139,21 @@ impl From<reqwest::Error> for PypiError {
     }
 }
 
-pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiError> {
+pub async fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiError> {
     let url = format!("https://pypi.org/pypi/{package}/json");
 
     let client = Client::new();
-    let res = client
-        .get(url)
-        .send()?
-        .error_for_status();
+    let res = client.get(url).send().await?.error_for_status();
 
     let version = if let Err(e) = res {
         eprintln!("Failed to make a request to pypi.org:\n{}", e);
         Err(PypiError(e.to_string()))
     } else if let Ok(r) = res {
-        let restext = r.text();
+        let restext = r.text().await;
         let restext = if let Ok(r) = restext {
             r
         } else {
-            return Err(PypiError("Failed to connect to pypi.org".to_string()))
+            return Err(PypiError("Failed to connect to pypi.org".to_string()));
         };
         // println!("{:#?}", restext.clone());
 
@@ -176,10 +173,11 @@ pub fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, PypiEr
         version
     } else {
         if res.is_err() {
-            let _ = res.map_err(|e| {return PypiError(e.to_string())});
+            let _ = res.map_err(|e| return PypiError(e.to_string()));
             exit(1)
-        }
-        else {exit(1)} // this is dangerous err handling, unhappy with it
+        } else {
+            exit(1)
+        } // this is dangerous err handling, unhappy with it
     };
 
     Ok(Box::new(if let Err(e) = version {
@@ -233,20 +231,20 @@ pub fn vecdep_to_hashmap(v: &Vec<Dependency>) -> HashMap<String, String> {
 
     importmap
 }
-/// caches package name, version data from 'pip list' in a hashmap for efficient lookup later. 
+/// caches package name, version data from 'pip list' in a hashmap for efficient lookup later.
 pub struct PipCache {
     cache: HashMap<String, String>,
     cached: bool,
 }
 
 impl PipCache {
-    // initializes the cache, caches and returns itself. 
+    // initializes the cache, caches and returns itself.
     pub fn init() -> PipCache {
         let pip_list = pip_list();
         if let Ok(pl) = pip_list {
             PipCache {
                 cache: pl,
-                cached: true
+                cached: true,
             }
         } else if let Err(e) = pip_list {
             eprintln!("{e}");
@@ -268,10 +266,7 @@ impl PipCache {
     pub fn lookup(&self, package_name: &str) -> io::Result<String> {
         match self.cache.get(package_name) {
             Some(version) => Ok(version.to_string()),
-            None => Err(Error::new(
-                ErrorKind::NotFound,
-                "Package not found in pip",
-            )),
+            None => Err(Error::new(ErrorKind::NotFound, "Package not found in pip")),
         }
     }
 }
@@ -283,18 +278,26 @@ pub struct SysInfo {
 }
 
 impl SysInfo {
-    pub fn new() -> SysInfo {
+    pub async fn new() -> SysInfo {
         let pip_found: bool = match pip_list() {
             Ok(_) => true,
-            Err(_) => false
+            Err(_) => false,
         };
+        let pypi_found: bool =  check_pypi_status().await;
 
-        let pypi_found: bool = match get_package_version_pypi("requests") {
-            Ok(_) => true,
-            Err(_) => false
-        };
-        
-        SysInfo { pip_found, pypi_found } 
-        // currently set to unknown due to a tokio runtime error
+        SysInfo {
+            pip_found,
+            pypi_found,
+        }
+    }
+}
+
+pub async fn check_pypi_status() ->  bool {
+    let r = _reqwest_send("get", "https://pypi.org".to_string()).await.ok_or(());
+    if let Ok(res) = r {
+        res.status().is_success()
+    }
+    else {
+        false
     }
 }

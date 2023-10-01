@@ -6,7 +6,7 @@ use crate::{
     scanner::models::Vuln,
 };
 use reqwest::{self, Client, Method};
-
+use futures::future;
 use std::process::exit;
 use super::{
     super::utils,
@@ -60,7 +60,7 @@ impl Osv {
         let version = if d.version.is_some() {
             d.version
         } else {
-            let res = utils::get_package_version_pypi(d.name.as_str());
+            let res = utils::get_package_version_pypi(d.name.as_str()).await;
             if let Err(e) = res {
                 eprintln!("PypiError:\n{}", e);
                 exit(1);
@@ -82,17 +82,17 @@ impl Osv {
     pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> Vec<ScannedDependency> {
         // runs the batch API. Each dep is converted into JSON format here, POSTed, and the response of vuln IDs -> queried into Vec<Vulnerability> -> returned as Vec<ScannedDependency>
         // The dep version conflicts are also solved over here.
-        let _ = deps
+        let _ = future::join_all(deps
             .iter_mut()
-            .map(|d| {
+            .map(|d| async {
                 d.version = if d.version.is_none() {
-                    Some(VersionStatus::choose(d.name.as_str(), &d.version))
+                    Some(VersionStatus::choose(d.name.as_str(), &d.version).await)
                 } else {
                     d.version.clone()
                 }
-            })
-            .collect::<Vec<_>>();
-
+            })).await;
+            
+            // .collect::<Vec<_>>();
         let mut progress = display::Progress::new();
 
         let mut imports_info = utils::vecdep_to_hashmap(&deps);
