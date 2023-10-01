@@ -53,7 +53,16 @@ pub async fn scan_dir(dir: &Path) {
                         path: OsString::from(entry.path())
                     });
                     result.pyproject();
-                } 
+                }
+                // setup.py
+                else if *"setup.py" == filename.clone() {
+                    result.add(FoundFile {
+                        name: filename,
+                        filetype: FileTypes::SetupPy,
+                        path: OsString::from(entry.path())
+                    });
+                    result.setuppy();
+                }
             }
         }
     }
@@ -161,7 +170,7 @@ async fn find_pyproject_imports(f: &Vec<FoundFile>) {
             let readf = fs::read_to_string(file.path.clone());
             if let Ok(f) = readf {
                 
-                extractor::extract_imports_pyproject(f, &mut imports)
+                let _ = extractor::extract_imports_pyproject(f, &mut imports);
             }
             else {
                 eprintln!("There was a problem reading your pyproject.toml")

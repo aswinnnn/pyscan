@@ -15,6 +15,7 @@ pub enum FileTypes {
     Requirements,
     Pyproject,
     Constraints,
+    SetupPy,
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +45,7 @@ pub struct FoundFileResult {
     pub reqs_found: u64,
     pub pyproject_found: u64,
     pub constraints_found: u64,
+    pub setuppy_found: u64
 }
 
 impl FoundFileResult {
@@ -54,6 +56,7 @@ impl FoundFileResult {
             reqs_found: 0,
             pyproject_found: 0,
             constraints_found: 0,
+            setuppy_found: 0,
         }
     }
     pub fn add(&mut self, f: FoundFile) {
@@ -70,6 +73,9 @@ impl FoundFileResult {
     }
     pub fn constraints(&mut self) {
         self.constraints_found += 1
+    }
+    pub fn setuppy(&mut self) {
+        self.setuppy_found += 1
     }
 }
 
