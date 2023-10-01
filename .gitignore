@@ -72,3 +72,4 @@ docs/_build/
 .python-version
 out.txt
 requirements.txt
+ptest
