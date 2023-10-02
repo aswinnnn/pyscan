@@ -35,6 +35,9 @@ impl FoundFile {
     pub fn is_pyproject(&self) -> bool {
         self.filetype == FileTypes::Pyproject
     }
+    pub fn is_setuppy(&self) -> bool {
+        self.filetype == FileTypes::SetupPy
+    }
 }
 
 #[derive(Debug, Clone)]

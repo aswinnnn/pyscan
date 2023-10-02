@@ -129,7 +129,7 @@ impl std::error::Error for PypiError {}
 // Implement the std::fmt::Display trait for DockerError
 impl std::fmt::Display for PypiError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "pypi.org error: {}", self.0)
+        write!(f, "pypi.org error: {}\n\n(note: this might usually happen when the dependency does not exist on pypi [check spelling, typos, etc] or when there's problems accessing the website.)", self.0)
     }
 }
 
@@ -171,13 +171,11 @@ pub async fn get_package_version_pypi<'a>(package: &str) -> Result<Box<String>, 
             Err(PypiError("pypi.org response error".to_string()))
         };
         version
+    } else if res.is_err() {
+        let _ = res.map_err(|e| PypiError(e.to_string()));
+        exit(1)
     } else {
-        if res.is_err() {
-            let _ = res.map_err(|e| return PypiError(e.to_string()));
-            exit(1)
-        } else {
-            exit(1)
-        } // this is dangerous err handling, unhappy with it
+        exit(1)
     };
 
     Ok(Box::new(if let Err(e) = version {
@@ -222,7 +220,7 @@ pub fn semver_parse(v: Vec<String>) -> Vec<Version> {
 }
 
 /// returns a hashmap<string, string> of (dependency name, version)
-pub fn vecdep_to_hashmap(v: &Vec<Dependency>) -> HashMap<String, String> {
+pub fn vecdep_to_hashmap(v: &[Dependency]) -> HashMap<String, String> {
     let mut importmap: HashMap<String, String> = HashMap::new();
 
     v.iter().for_each(|d| {
@@ -279,10 +277,7 @@ pub struct SysInfo {
 
 impl SysInfo {
     pub async fn new() -> SysInfo {
-        let pip_found: bool = match pip_list() {
-            Ok(_) => true,
-            Err(_) => false,
-        };
+        let pip_found: bool = pip_list().is_ok();
         let pypi_found: bool =  check_pypi_status().await;
 
         SysInfo {

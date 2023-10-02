@@ -3,14 +3,14 @@
 /// String is the contents of a source file, while the mut ref vector will
 /// be used to collect the dependencies that we have extracted from the contents.
 use super::structs::{Dependency, VersionStatus};
-use chrono::format::format;
+
 use lazy_static::lazy_static;
 use pep_508::{self, Spec};
 use regex::Regex;
-use std::collections::HashMap;
-use std::fs;
-use std::io;
-use toml::{de, de::Error, Table, Value};
+
+
+
+use toml::{de::Error, Value};
 
 pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
     lazy_static! {
@@ -144,7 +144,7 @@ pub fn extract_imports_setup_py(setup_py_content: &str, imp: &mut Vec<Dependency
                 matched
                     .as_str()
                     .split(',')
-                    .map(|dep| dep.trim().to_string()),
+                    .map(|dep| dep.trim().replace("\"", "").replace("\\", "").to_string()),
             );
         }
     }
@@ -154,10 +154,9 @@ pub fn extract_imports_setup_py(setup_py_content: &str, imp: &mut Vec<Dependency
         let parsed = pep_508::parse(d);
         if let Ok(dep) = parsed {
             let dname = dep.name.to_string();
-            println!("{:?}", dep.clone());
             if let Some(ver) = dep.spec {
                 if let Spec::Version(verspec) = ver {
-                    if let Some(v) = verspec.iter().next() {
+                    if let Some(v) = verspec.first() {
                         // pyscan only takes the first version spec found for the dependency
                         // for now.
                         let version = v.version.to_string();
@@ -233,8 +232,8 @@ pub fn extract_imports_pyproject(
                     match version {
                         Value::String(version_str) => {
                             let verstr = version_str.to_string();
-                            if verstr.contains("^") {
-                                let s = format!("{} >= {}", key, verstr.strip_prefix("^").unwrap());
+                            if verstr.contains('^') {
+                                let s = format!("{} >= {}", key, verstr.strip_prefix('^').unwrap());
                                 deps.push(s);
                             }
                             else if verstr == "*" {
