@@ -257,11 +257,6 @@ pub fn extract_imports_pyproject(
                     }
             }
         }
-
-
-
-        
-
         Ok(deps)
     }
 
