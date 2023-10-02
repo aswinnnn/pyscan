@@ -47,9 +47,8 @@ pub fn extract_imports_reqs(text: String, imp: &mut Vec<Dependency>) {
         // println!("{:?}", parsed.clone());
         if let Some(ver) = &dep.spec {
             if let Spec::Version(verspec) = ver {
-                for v in verspec {
+                if let Some(v) = verspec.iter().next() {
                     // pyscan only takes the first version spec found for the dependency
-                    // for now.
                     let version = v.version.to_string();
                     let comparator = v.comparator;
                     imp.push(Dependency {
@@ -62,7 +61,6 @@ pub fn extract_imports_reqs(text: String, imp: &mut Vec<Dependency>) {
                             source: true,
                         },
                     });
-                    break;
                 }
             }
         } else {
@@ -159,7 +157,7 @@ pub fn extract_imports_setup_py(setup_py_content: &str, imp: &mut Vec<Dependency
             println!("{:?}", dep.clone());
             if let Some(ver) = dep.spec {
                 if let Spec::Version(verspec) = ver {
-                    for v in verspec {
+                    if let Some(v) = verspec.iter().next() {
                         // pyscan only takes the first version spec found for the dependency
                         // for now.
                         let version = v.version.to_string();
@@ -174,7 +172,6 @@ pub fn extract_imports_setup_py(setup_py_content: &str, imp: &mut Vec<Dependency
                                 source: true,
                             },
                         });
-                        break;
                     }
                 }
             } else {
@@ -298,9 +295,6 @@ pub fn extract_imports_pyproject(
                     }
                 }
             }
-            else {
-                println!("no keys found you slimy fucker");
-            }
         }
         else if !key.contains("poetry") {
 
@@ -322,7 +316,7 @@ pub fn extract_imports_pyproject(
             let dname = dep.name.to_string();
             if let Some(ver) = dep.spec {
                 if let Spec::Version(verspec) = ver {
-                    for v in verspec {
+                    if let Some(v) = verspec.into_iter().next() {
                         let version = v.version.to_string();
                         let comparator = v.comparator;
                         imp.push(Dependency {
@@ -335,7 +329,6 @@ pub fn extract_imports_pyproject(
                                 source: true,
                             },
                         });
-                        break;
                     }
                 }
             } else {

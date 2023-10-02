@@ -94,6 +94,9 @@ async fn find_import(res: FoundFileResult) {
         // use pyproject instead (if it exists)
         find_pyproject_imports(&files).await
     }
+    else if res.setuppy_found != 0 {
+        find_setuppy_imports(&files).await
+    }
     else if res.py_found != 0 {
         // make sure theres atleast one python file, then use that
         find_python_imports(&files).await
@@ -103,6 +106,32 @@ async fn find_import(res: FoundFileResult) {
     }
 }
 
+async fn find_setuppy_imports(f: &Vec<FoundFile>) {
+    let cons = console::Term::stdout();
+    cons.write_line("Using setup.py as source...").unwrap();
+
+    let mut imports = Vec::new();
+    for file  in f {
+        if file.is_reqs() {
+            if let Ok(fhandle) = File::open(file.path.clone()) {
+
+                let reader = BufReader::new(fhandle);
+    
+                for line in reader.lines() {
+    
+                    if let Ok(l) = line {
+                        extractor::extract_imports_setup_py(l.trim(), &mut imports)
+    
+                    }
+                }
+            }
+        }
+    }
+    // println!("{:?}", imports.clone());
+    
+    // --- pass the dependencies to the scanner/api ---
+    scanner::start(imports).await.unwrap();
+}
 async fn find_python_imports(f: &Vec<FoundFile>) {
     let cons = console::Term::stdout();
     cons.write_line("Using python file as source...").unwrap();
