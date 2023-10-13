@@ -73,16 +73,16 @@ There's an overview of the codebase at [architecture](./architecture/). Grateful
 
 ## 🦀 How it's done
 
-pyscan uses [OSV](https://osv.dev) as its database for now. There are plans to add a few more, given its feasible.
+pyscan uses [OSV](https://osv.dev) as its database.
 
-pyscan doesn't make sure your code is safe from everything. Use all resources available to you like Dependabot, `pip-audit`, trivy and the likes.
+pyscan doesn't make sure your code is safe from everything, including yourself. Use all resources available to you like Dependabot, `pip-audit`, trivy and the likes.
 
 ## 🐰 Todo
 
 As of June 29, 2023:
 
-- [ ] Gather time to work on it (incredible task as a high schooler)
-- [ ] Multi-threading
+- [x] Gather time to work on it (incredible task as a high schooler)
+- [x] Multi-threading
 - [ ] Better display, search, filter of vulns
 - [ ] Plethora of output options (stick to >> for now)
 - [x] Benchmarks

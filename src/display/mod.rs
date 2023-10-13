@@ -1,9 +1,7 @@
-use std::{collections::HashMap, io, process::exit};
-
+use crate::parser::structs::ScannedDependency;
 use console::{style, Term};
 use once_cell::sync::Lazy;
-
-use crate::parser::structs::ScannedDependency;
+use std::{collections::HashMap, io, process::exit};
 
 static CONS: Lazy<Term> = Lazy::new(Term::stdout);
 
@@ -81,9 +79,8 @@ pub fn display_queried(
 }
 
 pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
+    // thing is, collected only has vulnerable dependencies, if theres a case where no vulns have been found, it will just skip this entire thing.
     if !collected.is_empty() {
-        // thing is, collected only has vulnerable dependencies, if theres a case where no vulns have been found, it will just skip this entire thing.
-
         // --- summary starts here ---
         CONS.write_line(&format!(
             "{}",

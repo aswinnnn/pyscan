@@ -9,7 +9,7 @@ use std::{
     boxed::Box,
     collections::HashMap,
     io::{self, Error, ErrorKind},
-    str,
+    str::{self},
 };
 
 pub fn get_time() -> String {
@@ -30,7 +30,7 @@ pub fn get_time() -> String {
 }
 
 pub fn get_version() -> String {
-    "0.1.5".to_string()
+    "0.1.6".to_string()
 }
 
 pub async fn _reqwest_send(method: &str, url: String) -> Option<Response> {
@@ -60,8 +60,7 @@ pub async fn _reqwest_send(method: &str, url: String) -> Option<Response> {
         } else {
             eprintln!(
                 "Could not establish an internet connection. Check your internet or try again."
-            );
-            None
+            );  exit(1)
         }
     } else {
         eprintln!("Could not build the network client. Report this at https://github.com/aswinnnn/pyscan/issues");
@@ -123,10 +122,10 @@ pub fn get_python_package_version(package: &str) -> Result<String, PipError> {
 #[derive(Debug)]
 pub struct PypiError(String);
 
-// Implement the std::error::Error trait for DockerError
+// Implement the std::error::Error trait for PypiError
 impl std::error::Error for PypiError {}
 
-// Implement the std::fmt::Display trait for DockerError
+// Implement the std::fmt::Display trait for PypiError
 impl std::fmt::Display for PypiError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "pypi.org error: {}\n\n(note: this might usually happen when the dependency does not exist on pypi [check spelling, typos, etc] or when there's problems accessing the website.)", self.0)

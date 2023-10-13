@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::process::exit;
 use std::{ffi::OsString, fs::File};
 mod extractor;
 pub mod structs;
@@ -92,7 +93,7 @@ async fn find_import(res: FoundFileResult) {
     } else {
         eprintln!(
             "Could not find any requirements.txt, pyproject.toml or python files in this directory"
-        );
+        ); exit(1)
     }
 }
 

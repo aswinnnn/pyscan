@@ -13,20 +13,20 @@ use std::env;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.5",about="python dependency vulnerability scanner.")]
+#[command(author="aswinnnn",version="0.1.6",about="python dependency vulnerability scanner.\n\ndo 'pyscan [subcommand] --help' for specific help.")]
 struct Cli {
-
-    /// path to source. if not provided it will use the current directory.
+    
+    /// path to source. (default: current directory)
     #[arg(long,short,default_value=None,value_name="DIRECTORY")]
     dir: Option<PathBuf>,
+    
+    /// export the result to a desired format. [json]
+    #[arg(long,short, required=false, value_name="FILENAME")]
+    output: Option<String>,
 
-    /// search for a single package, do "pyscan package --help" for more
+    /// search for a single package.
     #[command(subcommand)]
     subcommand: Option<SubCommand>,
-    
-    // /// scan a docker image, do "pyscan docker --help" for more
-    // #[command(subcommand)]
-    // docker: Option<SubCommand>,
 
     /// skip: skip the given databases
     /// ex. pyscan -s osv snyk
@@ -63,12 +63,12 @@ enum SubCommand {
         #[arg(long,short)]
         name: String,
 
-        /// version of the package (if not provided, the latest stable will be used)
+        /// version of the package (defaults to latest if not provided)
         #[arg(long, short, default_value=None)]
         version: Option<String>
     },
 
-    /// scan a docker image
+    /// scan inside a docker image
     Docker {
 
         /// name of the docker image
@@ -95,18 +95,6 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 
 #[tokio::main]
 async fn main() {
-    
-    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
-
-    let sys_info =  SysInfo::new().await;
-    // supposed to be a global static, cant atm due to async errors
-    // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
-
-    // init pip cache, if cache-off is false or pip has been found
-    if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
-            let _ = PIPCACHE.lookup("something");
-    }
-    // since its in Lazy its first accesss would init the cache, the result is ignorable.
 
     match &ARGS.get().unwrap().subcommand {
         // subcommand package
@@ -122,7 +110,6 @@ async fn main() {
 
             let _res = scanner::start(vdep).await;
             exit(0)
-
         },
         Some(SubCommand::Docker { name, path}) => {
             println!("{} {}\n{} {}",style("Docker image:").yellow().blink(),
@@ -138,8 +125,19 @@ async fn main() {
         None => ()
     }
 
+    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
+
+    let sys_info =  SysInfo::new().await;
+    // supposed to be a global static, cant atm because async closures are unstable.
+    // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
+
+    // init pip cache, if cache-off is false or pip has been found
+    if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
+            let _ = PIPCACHE.lookup(" ");
+    }
+    // since its in Lazy its first accesss would init the cache, the result is ignorable.
+
   
-    // println!("{:?}", args);
 
     // --- giving control to parser starts here ---
 
@@ -151,3 +149,4 @@ async fn main() {
     else {eprintln!("the given directory is empty."); exit(1)}; // err when dir is empty
 
 }
+

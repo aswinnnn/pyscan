@@ -1,3 +1,5 @@
+use std::process::exit;
+
 /// for the parser module, extractor.rs is the backbone of all parsing
 /// it takes a String and a mutable reference to a Vec<Dependency>.
 /// String is the contents of a source file, while the mut ref vector will
@@ -278,6 +280,7 @@ pub fn extract_imports_pyproject(
                                 Value::Table(table) => {
                                     all_dependencies.extend(extract_dependencies(table, Some(true))?);                            
                                 }
+                                // its definitely gonna be a table anyway, so...
                                 Value::String(_) => todo!(),
                                 Value::Integer(_) => todo!(),
                                 Value::Float(_) => todo!(),
@@ -290,6 +293,8 @@ pub fn extract_imports_pyproject(
                 }
             }
         }
+
+        // if its not poetry, check for [project] dependencies
         else if !key.contains("poetry") {
 
             if let Some(dependencies_table) = toml_value.get(key) {
@@ -297,6 +302,10 @@ pub fn extract_imports_pyproject(
                         all_dependencies.extend(extract_dependencies(dependencies, None)?);
                 }
             }
+        }
+        else {
+            eprintln!("The pyproject.toml seen here is unlike of a python project. Please check and make
+            sure you are in the right directory, or check the toml file."); exit(1)
         }
     }
     // the toml might contain repeated dependencies 

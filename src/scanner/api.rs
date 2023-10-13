@@ -1,4 +1,4 @@
-use crate::display;
+use crate::{display, ARGS};
 /// provides the functions needed to connect to various advisory sources.
 use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
 use crate::{
@@ -7,6 +7,7 @@ use crate::{
 };
 use reqwest::{self, Client, Method};
 use futures::future;
+use std::{fs, env};
 use std::process::exit;
 use super::{
     super::utils,
@@ -118,6 +119,22 @@ impl Osv {
 
             let parsed: Result<QueryResponse, serde_json::Error> = serde_json::from_str(&restext);
             let mut scanneddeps: Vec<ScannedDependency> = Vec::new();
+            if ARGS.get().unwrap().output.is_some() {
+                // txt or json extention inference, custom output filename
+                let filename = ARGS.get().unwrap().output.as_ref().unwrap();
+                if ".json" == &filename[{ filename.len() - 5 }..] {
+                    if let Ok(dir) = env::current_dir() {
+                        let r = fs::write(dir.join(filename), restext);
+                        if let Err(er) = r {
+                            eprintln!("Could not write output to file: {}", er.to_string());
+                            exit(1)
+                        }
+                        else {
+                            exit(0)
+                        }
+                    }
+                }
+            }
 
             if let Ok(p) = parsed {
                 for vres in p.results {
