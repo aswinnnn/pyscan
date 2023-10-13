@@ -10,6 +10,7 @@ mod scanner;
 mod docker;
 mod display;
 use std::env;
+use tokio::task;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
 
 #[derive(Parser, Debug)]
@@ -131,11 +132,17 @@ async fn main() {
     // supposed to be a global static, cant atm because async closures are unstable.
     // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
 
-    // init pip cache, if cache-off is false or pip has been found
-    if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
-            let _ = PIPCACHE.lookup(" ");
-    }
-    // since its in Lazy its first accesss would init the cache, the result is ignorable.
+    task::spawn(async move {
+        // init pip cache, if cache-off is false or pip has been found
+        if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
+                let _ = PIPCACHE.lookup(" ");
+                // since its in Lazy its first accesss would init the cache, the result is ignorable.
+            }
+        // has to be run on another thread to not block user functionality
+        // it still blocks because i cant make pip_list() async or PIPCACHE would fail
+        // as async closures aren't stable yet.
+        // but it removes a 3s delay, for now.
+    });
 
   
 
