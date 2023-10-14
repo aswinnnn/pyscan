@@ -7,7 +7,7 @@ static CONS: Lazy<Term> = Lazy::new(Term::stdout);
 
 pub struct Progress {
     // this progress info only contains progress info about the found vulns.
-    count: usize,
+    pub count: usize,
     current_displayed: usize,
 }
 
@@ -37,6 +37,9 @@ impl Progress {
 
     pub fn count_one(&mut self) {
         self.count += 1;
+    }
+    pub fn end(&mut self) {
+        let _ = CONS.clear_last_lines(1);
     }
 }
 

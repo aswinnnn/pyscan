@@ -153,7 +153,10 @@ impl Osv {
 
                     }
                     else {continue;}
-                }
+                } 
+                if progress.count > 0 {progress.end()} // clear progress line
+
+                // --- passing to display module starts here ---
                 display::display_queried(&scanneddeps, &mut imports_info);
                 scanneddeps
             } else {
