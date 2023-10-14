@@ -76,6 +76,7 @@ pub fn display_queried(
             .as_str(),
         );
     } // display the safe deps
+    let _ = display_summary(&collected);
 }
 
 pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
@@ -93,12 +94,19 @@ pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
                     "Dependency: {}",
                     style(v.name.clone()).bold().bright().red()
                 );
+                
+                CONS.write_line(name.as_str())?;
+                CONS.flush()?;
 
                 // ID
                 let id = format!("ID: {}", style(vuln.id.as_str()).bold().bright().yellow());
+                CONS.write_line(id.as_str())?;
+                CONS.flush()?;
 
                 // DETAILS
                 let details = format!("Details: {}", style(vuln.details.as_str()).italic());
+                CONS.write_line(details.as_str())?;
+                CONS.flush()?;
 
                 // VERSIONS AFFECTED from ... to
                 let vers: Vec<Vec<String>> = vuln
@@ -147,10 +155,8 @@ pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
 
                 println!();
 
-                CONS.write_line(name.as_str())?;
-                CONS.write_line(id.as_str())?;
-                CONS.write_line(details.as_str())?;
                 CONS.write_line(version.as_str())?;
+                CONS.flush()?;
             }
         }
     } else {
