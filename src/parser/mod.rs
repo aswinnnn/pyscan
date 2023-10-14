@@ -152,6 +152,8 @@ async fn find_reqs_imports(f: &Vec<FoundFile>) {
                 let reader = BufReader::new(fhandle);
 
                 for line in reader.lines().flatten() {
+                    // pep-508 does not parse --hash embeds in requirements.txt
+                    // see (https://github.com/figsoda/pep-508/issues/2)
                         extractor::extract_imports_reqs(line.trim().to_string(), &mut imports)
                 }
             }
