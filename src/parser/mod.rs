@@ -142,7 +142,7 @@ async fn find_python_imports(f: &Vec<FoundFile>) {
 
 async fn find_reqs_imports(f: &Vec<FoundFile>) {
     let cons = console::Term::stdout();
-    cons.write_line("Using requirements.txt/constraints.txt as source...")
+    cons.write_line("Using requirements.txt...")
         .unwrap();
 
     let mut imports = Vec::new();
