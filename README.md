@@ -71,10 +71,7 @@ Pyscan will use your `pip` to find unknown versions, otherwise [pypi.org](https:
 pyscan requires a rust version of `< v1.70`, and might be unstable on previous releases.
 There's an overview of the codebase at [architecture](./architecture/). Grateful for all the contributions so far.
 
-## 🦀 How it's done
-
-pyscan uses [OSV](https://osv.dev) as its database.
-
+## 🦀 Note
 
 pyscan doesn't make sure your code is safe from everything. Use all resources available to you like [safety](https://pypi.org/project/safety/) Dependabot, [`pip-audit`](https://pypi.org/project/pip-audit/), trivy and the likes.
 
@@ -82,12 +79,10 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 As of June 29, 2023:
 
-- [x] Gather time to work on it (incredible task as a high schooler)
-- [x] Multi-threading
-- [ ] Better display, search, filter of vulns
-- [x] Plethora of output options (stick to >> for now)
-- [x] Benchmarks
-- [x] Architecture write-up  
+- [ ] Gather time to work on it (incredible task as a high schooler)
+- [ ] Persistent state representation of a project's security.
+- [ ] Graphical analysis of dependencies and their dependencies, and so on.
+- [ ] Better display, search, filter of vulns  
 
 ## 🐹 Donate
 
