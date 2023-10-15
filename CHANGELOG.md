@@ -63,3 +63,29 @@ by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python fi
 - All the issue makers have led to some very awesome improvements, I fucking love open source.
 
 That's about it, check TODO for whats coming in the future.
+
+## v0.1.6
+
+*v0.1.5 had a bugfix to fix a critical bug accidently deployed in v0.1.4, immediately. Thus, i dont think it deserves its own thingy.*
+
+### New Features
+
+- implement parsing dependencies from `setup.py`,`setuptools`,`poetry`,`hatch`,`filt`, `pdm`
+- multithreaded requests for `> 100` dependencies
+- output options
+
+### Fixes
+
+This version was focused on:
+
+- #13 [fixed]
+- #14 [fixed]
+- #11 - This will took some time as parsing of pyproject.toml is hard-coded to only support PEP 621, which means redesigning how pyproject.toml should be scanned entirely. [fixed]
+
+### Notes
+
+Pyscan has some **very interesting developments** planned in the future. Checkout the PR.
+
+- [ ] the crate `pep-508` seems to be having trouble parsing embedded hash values in `requirements.txt` ( #16 ), which may or may not have a fix depending on the author of the lib.
+- [ ] (maybe) support for parsing SBOMs and KBOMs
+- [ ] (maybe) introduce displaying severity, along with a filter for known vuln IDs.
