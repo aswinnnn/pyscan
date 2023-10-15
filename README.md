@@ -77,7 +77,7 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 ## 🐰 Todo
 
-As of June 29, 2023:
+As of October 15, 2023:
 
 - [ ] Gather time to work on it (incredible task as a high schooler)
 - [ ] Persistent state representation of a project's security.
