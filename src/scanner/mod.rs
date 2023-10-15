@@ -1,6 +1,6 @@
 pub mod api;
 pub mod models;
-use crate::display;
+use std::process::exit;
 use super::parser::structs::Dependency;
 use console::{Term, style};
 
@@ -15,12 +15,16 @@ pub async fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
     cons.write_line(&s)?;
 
     // collected contains the dependencies with found vulns. imports_info contains a name, version hashmap of all found dependencies so we can display for all imports if vulns have been found or not
-
     let collected = osv.query_batched(imports).await;
-    display::display_summary(&collected)?;
+    // query_batched passes stuff onto display module after
     
     // if everything went fine:
-    Ok(()) // !!
+    if !collected.is_empty() {
+        exit(1)
+    }
+    else {
+        Ok(()) // if collected is zero means no vulns found, no need for a non-zero exit code.
+    }
 }
 
 

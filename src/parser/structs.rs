@@ -15,6 +15,7 @@ pub enum FileTypes {
     Requirements,
     Pyproject,
     Constraints,
+    SetupPy,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,9 @@ impl FoundFile {
     pub fn is_pyproject(&self) -> bool {
         self.filetype == FileTypes::Pyproject
     }
+    pub fn is_setuppy(&self) -> bool {
+        self.filetype == FileTypes::SetupPy
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +48,7 @@ pub struct FoundFileResult {
     pub reqs_found: u64,
     pub pyproject_found: u64,
     pub constraints_found: u64,
+    pub setuppy_found: u64
 }
 
 impl FoundFileResult {
@@ -54,6 +59,7 @@ impl FoundFileResult {
             reqs_found: 0,
             pyproject_found: 0,
             constraints_found: 0,
+            setuppy_found: 0,
         }
     }
     pub fn add(&mut self, f: FoundFile) {
@@ -70,6 +76,9 @@ impl FoundFileResult {
     }
     pub fn constraints(&mut self) {
         self.constraints_found += 1
+    }
+    pub fn setuppy(&mut self) {
+        self.setuppy_found += 1
     }
 }
 
@@ -98,7 +107,7 @@ pub struct VersionStatus {
 /// implementation for VersionStatus which can get return versions while updating the status, also pick the one decided via arguments, a nice abstraction really.
 impl VersionStatus {
     /// retreives versions from pip and pypi.org in (pip, pypi) format.
-    pub fn _full_check(&mut self, name: &str) -> (String, String) {
+    pub async fn _full_check(&mut self, name: &str) -> (String, String) {
         let pip = utils::get_python_package_version(name);
         let pip_v = if let Err(e) = pip {
             println!("An error occurred while retrieving version info from pip.\n{e}");
@@ -107,7 +116,7 @@ impl VersionStatus {
             pip.unwrap()
         };
 
-        let pypi = utils::get_package_version_pypi(name);
+        let pypi = utils::get_package_version_pypi(name).await;
         let pypi_v = if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");
             exit(1)
@@ -132,8 +141,8 @@ impl VersionStatus {
         }
     }
 
-    pub fn pypi(name: &str) -> String {
-        let pypi = utils::get_package_version_pypi(name);
+    pub async fn pypi(name: &str) -> String {
+        let pypi = utils::get_package_version_pypi(name).await;
 
         if let Err(e) = pypi {
             println!("An error occurred while retrieving version info from pypi.org.\n{e}");
@@ -144,11 +153,11 @@ impl VersionStatus {
     }
 
     /// returns the chosen version (from args or fallback)
-    pub fn choose(name: &str, dversion: &Option<String>) -> String {
+    pub async fn choose(name: &str, dversion: &Option<String>) -> String {
         if ARGS.get().unwrap().pip {
             VersionStatus::pip(name)
         } else if ARGS.get().unwrap().pypi {
-            VersionStatus::pypi(name)
+            VersionStatus::pypi(name).await
         } else {
             // fallback begins here once made sure no arguments are provided
             let d_version = if let Some(provided) = dversion {
@@ -156,11 +165,11 @@ impl VersionStatus {
             } else if let Ok(v) = utils::get_python_package_version(name) {
                 println!("{} : {}",style(name).yellow().dim(), style("A version could not be detected in the source file, so retrieving version from pip instead.").dim());
                 Some(v)
-            } else if let Ok(v) = utils::get_package_version_pypi(name) {
+            } else if let Ok(v) = utils::get_package_version_pypi(name).await {
                 println!("{} : {}",style(name).red().dim(), style("A version could not be detected through source or pip, so retrieving latest version from pypi.org instead.").dim());
                 Some(v.to_string())
             } else {
-                eprintln!("A version could not be retrieved for {}. This should not happen as pyscan defaults pip or pypi.org, unless you don't have an internet connection, the provided package name is wrong or if the package does not exist.\nReach out on github.com/aswinnnn/pyscan/issues if the above cases did not take place.", style(name).bright().red());
+                eprintln!("A version could not be retrieved for {}. This should not happen as pyscan defaults pip or pypi.org, unless:\n1) Pip is not installed\n2) You don't have an internet connection\n3) You did not anticipate the consequences of not specifying a version for your dependency in the configuration files.\nReach out on github.com/aswinnnn/pyscan/issues if the above cases did not take place.", style(name).bright().red());
                 exit(1);
             };
             d_version.unwrap()

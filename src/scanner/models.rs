@@ -1,10 +1,10 @@
 // automatically generated. do not change.
 
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
 
-use crate::{parser::structs::ScannedDependency};
+use crate::parser::structs::ScannedDependency;
 
 
 

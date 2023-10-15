@@ -1,15 +1,13 @@
-use std::{collections::HashMap, io, process::exit};
-
+use crate::parser::structs::ScannedDependency;
 use console::{style, Term};
 use once_cell::sync::Lazy;
-
-use crate::parser::structs::ScannedDependency;
+use std::{collections::HashMap, io, process::exit};
 
 static CONS: Lazy<Term> = Lazy::new(Term::stdout);
 
 pub struct Progress {
     // this progress info only contains progress info about the found vulns.
-    count: usize,
+    pub count: usize,
     current_displayed: usize,
 }
 
@@ -39,6 +37,9 @@ impl Progress {
 
     pub fn count_one(&mut self) {
         self.count += 1;
+    }
+    pub fn end(&mut self) {
+        let _ = CONS.clear_last_lines(1);
     }
 }
 
@@ -78,12 +79,12 @@ pub fn display_queried(
             .as_str(),
         );
     } // display the safe deps
+    let _ = display_summary(&collected);
 }
 
 pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
+    // thing is, collected only has vulnerable dependencies, if theres a case where no vulns have been found, it will just skip this entire thing.
     if !collected.is_empty() {
-        // thing is, collected only has vulnerable dependencies, if theres a case where no vulns have been found, it will just skip this entire thing.
-
         // --- summary starts here ---
         CONS.write_line(&format!(
             "{}",
@@ -96,12 +97,19 @@ pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
                     "Dependency: {}",
                     style(v.name.clone()).bold().bright().red()
                 );
+                
+                CONS.write_line(name.as_str())?;
+                CONS.flush()?;
 
                 // ID
                 let id = format!("ID: {}", style(vuln.id.as_str()).bold().bright().yellow());
+                CONS.write_line(id.as_str())?;
+                CONS.flush()?;
 
                 // DETAILS
                 let details = format!("Details: {}", style(vuln.details.as_str()).italic());
+                CONS.write_line(details.as_str())?;
+                CONS.flush()?;
 
                 // VERSIONS AFFECTED from ... to
                 let vers: Vec<Vec<String>> = vuln
@@ -150,10 +158,8 @@ pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {
 
                 println!();
 
-                CONS.write_line(name.as_str())?;
-                CONS.write_line(id.as_str())?;
-                CONS.write_line(details.as_str())?;
                 CONS.write_line(version.as_str())?;
+                CONS.flush()?;
             }
         }
     } else {

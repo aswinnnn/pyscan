@@ -1,7 +1,6 @@
 use std::{path::PathBuf, process::exit};
 use clap::{Parser, Subcommand};
-use utils::PipCache;
-
+use utils::{PipCache, SysInfo};
 use std::sync::OnceLock;
 use once_cell::sync::Lazy;
 use console::style;
@@ -10,26 +9,25 @@ mod parser;
 mod scanner;
 mod docker;
 mod display;
-
 use std::env;
-
+use tokio::task;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.5",about="python dependency vulnerability scanner.")]
+#[command(author="aswinnnn",version="0.1.6",about="python dependency vulnerability scanner.\n\ndo 'pyscan [subcommand] --help' for specific help.")]
 struct Cli {
-
-    /// path to source. if not provided it will use the current directory.
+    
+    /// path to source. (default: current directory)
     #[arg(long,short,default_value=None,value_name="DIRECTORY")]
     dir: Option<PathBuf>,
+    
+    /// export the result to a desired format. [json]
+    #[arg(long,short, required=false, value_name="FILENAME")]
+    output: Option<String>,
 
-    /// search for a single package, do "pyscan package --help" for more
+    /// search for a single package.
     #[command(subcommand)]
     subcommand: Option<SubCommand>,
-    
-    // /// scan a docker image, do "pyscan docker --help" for more
-    // #[command(subcommand)]
-    // docker: Option<SubCommand>,
 
     /// skip: skip the given databases
     /// ex. pyscan -s osv snyk
@@ -66,12 +64,12 @@ enum SubCommand {
         #[arg(long,short)]
         name: String,
 
-        /// version of the package (if not provided, the latest stable will be used)
+        /// version of the package (defaults to latest if not provided)
         #[arg(long, short, default_value=None)]
         version: Option<String>
     },
 
-    /// scan a docker image
+    /// scan inside a docker image
     Docker {
 
         /// name of the docker image
@@ -96,33 +94,23 @@ static PIPCACHE: Lazy<PipCache> = Lazy::new(|| {utils::PipCache::init()});
 // is a hashmap of package name, version from 'pip list'
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check. 
 
-
 #[tokio::main]
 async fn main() {
-    
-    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
-
-    // init pip cache, if cache-off is false
-    if !&ARGS.get().unwrap().cache_off {
-        let _ = PIPCACHE.lookup("something");
-    }
-    // since its in Lazy its first accesss would init the cache, the result is ignorable.
 
     match &ARGS.get().unwrap().subcommand {
         // subcommand package
 
         Some(SubCommand::Package { name, version }) => {
             // let osv = Osv::new().expect("Cannot access the API to get the latest package version.");
-            let version = if let Some(v) = version {v.to_string()} else {utils::get_package_version_pypi(name.as_str()).expect("Error in retrieving stable version from API").to_string()};
+            let version = if let Some(v) = version {v.to_string()} else {utils::get_package_version_pypi(name.as_str()).await.expect("Error in retrieving stable version from API").to_string()};
 
             let dep = Dependency {name: name.to_string(), version: Some(version), comparator: None, version_status: VersionStatus {pypi: false, pip: false, source: false}};
             
             // start() from scanner only accepts Vec<Dependency> so
             let vdep = vec![dep];
 
-            let _res = scanner::start(vdep);
+            let _res = scanner::start(vdep).await;
             exit(0)
-
         },
         Some(SubCommand::Docker { name, path}) => {
             println!("{} {}\n{} {}",style("Docker image:").yellow().blink(),
@@ -138,8 +126,25 @@ async fn main() {
         None => ()
     }
 
+    println!("pyscan v{} | by Aswin S (github.com/aswinnnn)", get_version());  
+
+    let sys_info =  SysInfo::new().await;
+    // supposed to be a global static, cant atm because async closures are unstable.
+    // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
+
+    task::spawn(async move {
+        // init pip cache, if cache-off is false or pip has been found
+        if !&ARGS.get().unwrap().cache_off | sys_info.pip_found { 
+                let _ = PIPCACHE.lookup(" ");
+                // since its in Lazy its first accesss would init the cache, the result is ignorable.
+            }
+        // has to be run on another thread to not block user functionality
+        // it still blocks because i cant make pip_list() async or PIPCACHE would fail
+        // as async closures aren't stable yet.
+        // but it removes a 3s delay, for now.
+    });
+
   
-    // println!("{:?}", args);
 
     // --- giving control to parser starts here ---
 
@@ -151,3 +156,4 @@ async fn main() {
     else {eprintln!("the given directory is empty."); exit(1)}; // err when dir is empty
 
 }
+

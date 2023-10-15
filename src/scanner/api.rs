@@ -1,4 +1,4 @@
-use crate::display;
+use crate::{display, ARGS};
 /// provides the functions needed to connect to various advisory sources.
 use crate::{parser::structs::Dependency, scanner::models::Vulnerability};
 use crate::{
@@ -6,7 +6,8 @@ use crate::{
     scanner::models::Vuln,
 };
 use reqwest::{self, Client, Method};
-
+use futures::future;
+use std::{fs, env};
 use std::process::exit;
 use super::{
     super::utils,
@@ -60,7 +61,7 @@ impl Osv {
         let version = if d.version.is_some() {
             d.version
         } else {
-            let res = utils::get_package_version_pypi(d.name.as_str());
+            let res = utils::get_package_version_pypi(d.name.as_str()).await;
             if let Err(e) = res {
                 eprintln!("PypiError:\n{}", e);
                 exit(1);
@@ -82,17 +83,17 @@ impl Osv {
     pub async fn query_batched(&self, mut deps: Vec<Dependency>) -> Vec<ScannedDependency> {
         // runs the batch API. Each dep is converted into JSON format here, POSTed, and the response of vuln IDs -> queried into Vec<Vulnerability> -> returned as Vec<ScannedDependency>
         // The dep version conflicts are also solved over here.
-        let _ = deps
+        let _ = future::join_all(deps
             .iter_mut()
-            .map(|d| {
+            .map(|d| async {
                 d.version = if d.version.is_none() {
-                    Some(VersionStatus::choose(d.name.as_str(), &d.version))
+                    Some(VersionStatus::choose(d.name.as_str(), &d.version).await)
                 } else {
                     d.version.clone()
                 }
-            })
-            .collect::<Vec<_>>();
-
+            })).await;
+            
+            // .collect::<Vec<_>>();
         let mut progress = display::Progress::new();
 
         let mut imports_info = utils::vecdep_to_hashmap(&deps);
@@ -118,6 +119,22 @@ impl Osv {
 
             let parsed: Result<QueryResponse, serde_json::Error> = serde_json::from_str(&restext);
             let mut scanneddeps: Vec<ScannedDependency> = Vec::new();
+            if ARGS.get().unwrap().output.is_some() {
+                // txt or json extention inference, custom output filename
+                let filename = ARGS.get().unwrap().output.as_ref().unwrap();
+                if ".json" == &filename[{ filename.len() - 5 }..] {
+                    if let Ok(dir) = env::current_dir() {
+                        let r = fs::write(dir.join(filename), restext);
+                        if let Err(er) = r {
+                            eprintln!("Could not write output to file: {}", er.to_string());
+                            exit(1)
+                        }
+                        else {
+                            exit(0)
+                        }
+                    }
+                }
+            }
 
             if let Ok(p) = parsed {
                 for vres in p.results {
@@ -136,7 +153,10 @@ impl Osv {
 
                     }
                     else {continue;}
-                }
+                } 
+                if progress.count > 0 {progress.end()} // clear progress line
+
+                // --- passing to display module starts here ---
                 display::display_queried(&scanneddeps, &mut imports_info);
                 scanneddeps
             } else {
