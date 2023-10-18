@@ -9,6 +9,8 @@ mod parser;
 mod scanner;
 mod docker;
 mod display;
+mod map;
+mod store;
 use std::env;
 use tokio::task;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
