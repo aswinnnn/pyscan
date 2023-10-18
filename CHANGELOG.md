@@ -64,7 +64,7 @@ by <i>"source"</i> I mean `requirements.txt`, `pyproject.toml` or your python fi
 
 That's about it, check TODO for whats coming in the future.
 
-## v0.1.6
+## v0.1.6 (October 15, 2023)
 
 *v0.1.5 had a bugfix to fix a critical bug accidently deployed in v0.1.4, immediately. Thus, i dont think it deserves its own thingy.*
 

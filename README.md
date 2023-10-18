@@ -29,7 +29,7 @@ or
 cargo install pyscan
 ```
 
-check out the [releases](https://github.com/aswinnnn/pyscan/releases).
+
 
 ## 🐇 Usage
 
