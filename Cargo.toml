@@ -13,7 +13,7 @@ categories = ["command-line-utilities"]
 
 
 [dependencies]
-chrono = "0.4.24"
+chrono = "0.4.31"
 clap = {version="4.2.1", features=["derive"]}
 console = "0.15.5"
 lazy_static = "1.4.0"
@@ -29,3 +29,4 @@ semver = "1.0.17"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures = "0.3.28"
 sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite", "chrono" ] }
+dirs = "5.0.1"
