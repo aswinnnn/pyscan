@@ -18,7 +18,6 @@ clap = {version="4.2.1", features=["derive"]}
 console = "0.15.5"
 lazy_static = "1.4.0"
 once_cell = "1.18.0"
-pep-508 = "0.3.0"
 regex = "1.7.3"
 reqwest = {version="0.11.16"}
 serde = {version="1.0.160", features=["derive", "serde_derive"]}
@@ -30,3 +29,5 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures = "0.3.28"
 sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite", "chrono" ] }
 dirs = "5.0.1"
+anyhow = "1.0.75"
+chumsky = "=1.0.0-alpha.3"

@@ -1,13 +1,8 @@
 use console::style;
 use std::{ffi::OsString, process::exit};
-
+use crate::pep_508;
 use crate::{scanner::models::Query, utils, ARGS};
-
 use super::scanner::models::Vulnerability;
-
-// struct Python;
-// struct Requirements;
-// struct Pyproject;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FileTypes {

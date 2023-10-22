@@ -11,6 +11,7 @@ mod docker;
 mod display;
 mod map;
 mod store;
+mod pep_508;
 use std::env;
 use tokio::task;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};

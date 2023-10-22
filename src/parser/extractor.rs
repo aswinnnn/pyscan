@@ -1,17 +1,13 @@
-use std::process::exit;
-
 /// for the parser module, extractor.rs is the backbone of all parsing
 /// it takes a String and a mutable reference to a Vec<Dependency>.
 /// String is the contents of a source file, while the mut ref vector will
 /// be used to collect the dependencies that we have extracted from the contents.
+use std::process::exit;
 use super::structs::{Dependency, VersionStatus};
-
 use lazy_static::lazy_static;
-use pep_508::{self, Spec};
+use crate::pep_508;
+use crate::pep_508::Spec;
 use regex::Regex;
-
-
-
 use toml::{de::Error, Value};
 
 pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
