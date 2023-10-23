@@ -31,3 +31,8 @@ sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite", "chrono" ] }
 dirs = "5.0.1"
 anyhow = "1.0.75"
 chumsky = "=1.0.0-alpha.3"
+
+[profile.dev]
+opt-level = 0
+lto = "off"
+codegen-units = 512
