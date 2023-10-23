@@ -6,7 +6,7 @@
 
 <!-- <img src="https://media.discordapp.net/attachments/1002212458502557718/1107648562004758538/pyscan.png?width=779&height=206"> -->
 
-<img src="./assets/pyscan-repository.png">
+<img src="./assets/2pyscan-repository.png">
 
 </h4>
 
