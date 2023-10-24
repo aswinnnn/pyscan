@@ -20,7 +20,7 @@ struct PipCache {
 }
 
 impl PipCache {
-    pub async fn create() -> Result<(),Error> {
+    pub async fn create_table() -> Result<(),Error> {
         let (conn, tx) = retrieve_root().await?;
 
         sqlx::query!(r#"CREATE TABLE IF NOT EXISTS pipcache (
@@ -48,5 +48,17 @@ impl PipCache {
         
         Ok(())
     }
+
+    pub async fn remove(name: &str) -> Result<(), Error> {
+        let (conn, tx) = retrieve_root().await?;
+
+        sqlx::query!("DELETE FROM pipcache WHERE name = ?;", name).execute(&conn).await?;
+
+        tx.commit().await?;
+        
+        Ok(())
+    }
+
+
 
 }
