@@ -34,7 +34,7 @@ fn init_data_dir() -> Result<PathBuf, ()> {
                 Ok(path)
             } 
             else {
-                let r = fs::create_dir(path);
+                let r = fs::create_dir(path.clone());
                 if let Err(e) = r {
                     eprintln!("Pyscan failed to create a folder on your system's data directory.\ndirectory: {}\nerror: {}", d.display(), e);
                     exit(1)
@@ -72,7 +72,7 @@ fn init_project_dir() -> Result<PathBuf, ()> {
                 Ok(path)
             } 
             else {
-                let r = fs::create_dir(path);
+                let r = fs::create_dir(path.clone());
                 if let Err(e) = r {
                     eprintln!("Pyscan failed to create a folder on the current directory.\ndirectory: {}\nerror: {}", d.display(), e);
                     exit(1)

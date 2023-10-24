@@ -23,9 +23,9 @@ impl PipCache {
         let time = Utc::now();
         let mut conn = SqlitePool::connect(PYSCAN_ROOT.clone().unwrap().to_str().unwrap()).await?.acquire().await?;
 
-        let id = sqlx::query!(r#"CREATE TABLE IF NOT EXISTS pipcache (
+        sqlx::query!(r#"CREATE TABLE IF NOT EXISTS pipcache (
             name TEXT NOT NULL,
-            version TEXT NOT NULL,
+            version TEXT NOT NULL
         )"#).execute(&mut *conn).await?;
 
         Ok(())
