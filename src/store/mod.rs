@@ -39,4 +39,14 @@ impl PipCache {
         
         Ok(())
     }
+    pub async fn update(name: &str, version: &str) -> Result<(), Error> {
+        let (conn, tx) = retrieve_root().await?;
+
+        sqlx::query!("UPDATE pipcache SET name = ?, version = ?", name, version).execute(&conn).await?;
+
+        tx.commit().await?;
+        
+        Ok(())
+    }
+
 }
