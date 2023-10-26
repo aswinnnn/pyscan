@@ -84,6 +84,17 @@ As of October 15, 2023:
 - [ ] Graphical analysis of dependencies and their dependencies, and so on.
 - [ ] Better display, search, filter of vulns  
 
+## Star History
+
+<a href="https://star-history.com/#aswinnnn/pyscan&Timeline">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=aswinnnn/pyscan&type=Timeline&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=aswinnnn/pyscan&type=Timeline" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=aswinnnn/pyscan&type=Timeline" />
+  </picture>
+</a>
+
+
 ## 🐹 Donate
 
 While not coding, I am a broke high school student with nothing else to do. I appreciate all the help I can get.
