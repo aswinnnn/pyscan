@@ -102,7 +102,7 @@ async fn populate_project_dir() -> Result<(), Error> {
         cve TEXT PRIMARY KEY,
         name TEXT NOT NULL
     );    
-    "#).execute(&conn).await;
+    "#).execute(&conn).await?;
 
     sqlx::query!(r#"
     CREATE TABLE IF NOT EXISTS Dependency (
@@ -111,7 +111,7 @@ async fn populate_project_dir() -> Result<(), Error> {
         added TEXT NOT NULL,
         updated TEXT NOT NULL
     );    
-    "#).execute(&conn).await;
+    "#).execute(&conn).await?;
 
     sqlx::query!(r#"
     CREATE TABLE IF NOT EXISTS VulnerabilityDependency (
@@ -121,6 +121,6 @@ async fn populate_project_dir() -> Result<(), Error> {
         FOREIGN KEY (dependency_name) REFERENCES Dependency(name) ON DELETE CASCADE,
         PRIMARY KEY (vulnerability_cve, dependency_name)
     )
-    "#).execute(&conn).await;
+    "#).execute(&conn).await?;
     Ok(())
 }
