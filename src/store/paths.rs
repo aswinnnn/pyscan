@@ -106,7 +106,7 @@ async fn populate_project_dir() -> Result<(), Error> {
 
     sqlx::query!(r#"
     CREATE TABLE IF NOT EXISTS Dependency (
-        name TEXT NOT NULL,
+        name TEXT PRIMARY KEY,
         version TEXT NOT NULL,
         added TEXT NOT NULL,
         updated TEXT NOT NULL

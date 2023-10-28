@@ -56,6 +56,10 @@ trait DatabaseOps {
                 Ok(())
             },
             DatabaseTable::VulnerabilityDependency(vd) => {
+                // query!("
+                // INSERT INTO VulnerabilityDependency (vulnerability_cve, dependency_name)
+                // VALUES (?,?)
+                // ", vd.cve, vd.package).execute(&conn).await?;
                 Ok(())
             },
         }
