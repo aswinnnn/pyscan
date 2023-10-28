@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE Dependency SET name = ?,  version = ?, added = ?, updated = ?\n            WHERE name = ?;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "ad897b700f9bea8d672f9353c45c20135bd9e32b67dbe15a73e2c5a430dd93b4"
+}

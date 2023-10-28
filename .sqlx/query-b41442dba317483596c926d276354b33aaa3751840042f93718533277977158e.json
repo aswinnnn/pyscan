@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS Dependency (\n        name TEXT PRIMARY KEY,\n        version TEXT NOT NULL,\n        added TEXT NOT NULL,\n        updated TEXT NOT NULL\n    );    \n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "b41442dba317483596c926d276354b33aaa3751840042f93718533277977158e"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM pipcache WHERE name = ?;",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "ef096d4ac618bb69b7485e8cdcc193d0b66a0414440ad3e420a2167d12685f31"
+}

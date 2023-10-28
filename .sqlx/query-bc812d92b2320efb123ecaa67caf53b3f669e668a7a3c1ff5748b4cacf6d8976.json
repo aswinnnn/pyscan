@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO pipcache (name, version) VALUES (?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "bc812d92b2320efb123ecaa67caf53b3f669e668a7a3c1ff5748b4cacf6d8976"
+}

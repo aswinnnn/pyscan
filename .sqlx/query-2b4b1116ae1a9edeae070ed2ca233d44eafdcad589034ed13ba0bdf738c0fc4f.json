@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO Vulnerability (cve, name)\n            VALUES (?,?);\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "2b4b1116ae1a9edeae070ed2ca233d44eafdcad589034ed13ba0bdf738c0fc4f"
+}

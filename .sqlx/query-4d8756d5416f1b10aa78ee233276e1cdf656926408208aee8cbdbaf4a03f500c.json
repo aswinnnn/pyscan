@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "CREATE TABLE IF NOT EXISTS pipcache (\n            name TEXT NOT NULL,\n            version TEXT NOT NULL)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "4d8756d5416f1b10aa78ee233276e1cdf656926408208aee8cbdbaf4a03f500c"
+}

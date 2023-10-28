@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS Vulnerability (\n        cve TEXT PRIMARY KEY,\n        name TEXT NOT NULL\n    );    \n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "a9456623d7d27b076db135743f5517b45beb0173d3181e62b912edabdf778c11"
+}

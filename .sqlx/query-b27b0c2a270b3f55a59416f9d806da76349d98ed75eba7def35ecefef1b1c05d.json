@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE pipcache SET name = ?, version = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "b27b0c2a270b3f55a59416f9d806da76349d98ed75eba7def35ecefef1b1c05d"
+}

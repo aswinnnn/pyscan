@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO Dependency (name, version, added, updated)\n            VALUES (?,?,?,?);\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "476ee627b3c8d37fabe9af81e56d5808fff59f2d643914ff90643ea05170cf0f"
+}
