@@ -79,7 +79,7 @@ pub fn display_queried(
             .as_str(),
         );
     } // display the safe deps
-    let _ = display_summary(&collected);
+    let _ = display_summary(collected);
 }
 
 pub fn display_summary(collected: &Vec<ScannedDependency>) -> io::Result<()> {

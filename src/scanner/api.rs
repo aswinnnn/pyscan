@@ -126,7 +126,7 @@ impl Osv {
                     if let Ok(dir) = env::current_dir() {
                         let r = fs::write(dir.join(filename), restext);
                         if let Err(er) = r {
-                            eprintln!("Could not write output to file: {}", er.to_string());
+                            eprintln!("Could not write output to file: {}", er);
                             exit(1)
                         }
                         else {

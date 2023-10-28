@@ -142,7 +142,7 @@ pub fn extract_imports_setup_py(setup_py_content: &str, imp: &mut Vec<Dependency
                 matched
                     .as_str()
                     .split(',')
-                    .map(|dep| dep.trim().replace("\"", "").replace("\\", "").to_string()),
+                    .map(|dep| dep.trim().replace(['\"', '\\'], "")),
             );
         }
     }

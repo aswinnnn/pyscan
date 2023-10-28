@@ -1,12 +1,12 @@
 //! This module deals with data storage. Databases, Caches, Paths, etc.
-mod cache;
-mod paths;
-mod queries;
-use std::fmt::{write, Display};
+pub mod cache;
+pub mod paths;
+pub mod queries;
+
 
 use anyhow::Error;
 use async_trait::async_trait;
-use chrono::{format, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{NaiveDate};
 use queries::retrieve_root;
 use sqlx::query;
 

@@ -12,7 +12,7 @@ impl DependencyGraph {
     // ... your existing methods ...
 
     fn display_ascii_tree(&self) {
-        self.display_ascii_tree_recursive(&self.inner, &mut " ".to_string(), if self.inner.len() > 1 { false } else { true });
+        self.display_ascii_tree_recursive(&self.inner, &mut " ".to_string(), self.inner.len() <= 1);
     }
 
     fn display_ascii_tree_recursive(&self, nodes: &Vec<DependencyNode>, pad: &mut String, is_child: bool) {

@@ -1,7 +1,7 @@
 use anyhow::Error;
-use sqlx::SqlitePool;
-use chrono::{Utc, DateTime, NaiveDateTime, NaiveDate};
-use super::paths::{PYSCAN_HOME, PYSCAN_ROOT};
+
+use chrono::{Utc, DateTime};
+
 use super::queries::retrieve_root;
 
 

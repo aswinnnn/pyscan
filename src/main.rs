@@ -15,16 +15,17 @@ mod pep_508;
 use std::env;
 use tokio::task;
 use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}};
+use store::paths::{PYSCAN_ROOT, populate_project_dir};
 
 #[derive(Parser, Debug)]
-#[command(author="aswinnnn",version="0.1.6",about="python dependency vulnerability scanner.\n\ndo 'pyscan [subcommand] --help' for specific help.")]
+#[command(author="aswinnnn",version="0.1.6",about="python dependency vulnerability scanner.\nrun 'pyscan' to do a scan.\n\ndo 'pyscan [subcommand] --help' for specific help.")]
 struct Cli {
     
     /// path to source. (default: current directory)
     #[arg(long,short,default_value=None,value_name="DIRECTORY")]
     dir: Option<PathBuf>,
     
-    /// export the result to a desired format. [json]
+    /// export the result to a desired format. [only json for now]
     #[arg(long,short, required=false, value_name="FILENAME")]
     output: Option<String>,
 
@@ -53,7 +54,7 @@ struct Cli {
     #[arg(long, required=false,action=clap::ArgAction::SetTrue)]
     pypi: bool,
 
-    /// turns off the caching of pip packages at the starting of execution.
+    /// turns off the caching of pip packages at starting.
     #[arg(long="cache-off", required=false,action=clap::ArgAction::SetTrue)]
     cache_off: bool,
     
@@ -61,6 +62,10 @@ struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 enum SubCommand {
+    
+    /// initialize a pyscan data store and enable persistent analysis. [required for advanced features]  
+    Init,
+
     /// query for a single python package
     Package {
         /// name of the package
@@ -71,6 +76,7 @@ enum SubCommand {
         #[arg(long, short, default_value=None)]
         version: Option<String>
     },
+    
 
     /// scan inside a docker image
     Docker {
@@ -125,6 +131,26 @@ async fn main() {
             docker::list_files_in_docker_image(name, path.to_path_buf()).await
             .expect("Error in scanning files from Docker image.");
             exit(0)
+        },
+        Some(SubCommand::Init) => {
+            // unwrapping the static forces an initialization since its lazy. 
+            // if unwrapping fails it tells the user it could not initialize.
+
+            let r = PYSCAN_ROOT.clone().unwrap_or_else( |()|{
+                let cwd = env::current_dir();
+                if let Ok(path) = cwd {
+                    eprintln!("Could not initialize a .pyscan directory at {}", path.display()); exit(1)
+                }
+                else {
+                    eprintln!("Pyscan encountered a problem identifying your current working directory.\n Report this at github.com/aswinnnn/pyscan/issues"); exit(1);
+                }
+            });
+            let res = populate_project_dir().await;
+            if let Err(e) = res {
+                eprintln!("Failed to create database at {}\nerror: {}", r.display(), e); exit(1)
+            }
+            println!("Initialized persistent vigilance at {}\nYou can now run 'pyscan' or 'pyscan map' to start gathering data. See 'pyscan help' for more info.", r.display()); exit(0)
+
         }
         None => ()
     }

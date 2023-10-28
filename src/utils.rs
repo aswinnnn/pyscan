@@ -190,10 +190,10 @@ pub fn pip_list() -> io::Result<HashMap<String, String>> {
     let output = Command::new("pip")
         .arg("list")
         .output()
-        .map_err(|_| io::Error::new(ErrorKind::Other, "Failed to execute 'pip list' command. pyscan caches the dependencies from pip with versions to be faster and it could not run 'pip list'. You can turn this off via just using --cache-off [note: theres a chance pyscan might still fallback to using pip]"))?;
+        .map_err(|_| io::Error::new(ErrorKind::Other, "Failed to execute 'pip list' command.\npyscan caches the dependencies from pip with versions to be faster and it could not run 'pip list'.\nYou can turn this off via just using --cache-off\n[note: theres a chance pyscan might still fallback to using pip]"))?;
 
     let output_str = str::from_utf8(&output.stdout)
-        .map_err(|_| io::Error::new(ErrorKind::InvalidData, "Output from 'pip list' was not valid UTF-8. pyscan caches the dependencies from pip with versions to be faster and the output it recieved was not valid UTF-8. You can turn this off via just using --cache-off [note: theres a chance pyscan might still fallback to using pip]"))?;
+        .map_err(|_| io::Error::new(ErrorKind::InvalidData, "Output from 'pip list' was not valid UTF-8.\npyscan caches the dependencies from pip with versions to be faster and the output it recieved was not valid UTF-8.\nYou can turn this off via just using --cache-off\n[note: theres a chance pyscan might still fallback to using pip]"))?;
 
     let mut pip_list: HashMap<String, String> = HashMap::new();
 

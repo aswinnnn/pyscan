@@ -1,18 +1,21 @@
 //! Functions and statics concerning with paths and directories important for pyscan's functionality.
 use std::{fs, path::PathBuf, process::exit, env};
 use anyhow::Error;
-use dirs;
+
 use once_cell::sync::Lazy;
 
 use super::queries::retrieve_root;
 
 // contains data on all projects being watched across the user's system
-pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(|| init_data_dir());
+pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(init_data_dir);
 
 // TODO ! : depth check
+// TODO ! : DEPENDENCY CHANGES still hasnt been implemented.
+// TODO ! : create .store file
+// TODO ! : reinitialize if db already exists (add project to HOME db)
 
 // at the project's root directory after `pyscan init`
-pub static PYSCAN_ROOT: Lazy<Result<PathBuf, ()>> = Lazy::new(|| init_project_dir());
+pub static PYSCAN_ROOT: Lazy<Result<PathBuf, ()>> = Lazy::new(init_project_dir);
 
 fn init_data_dir() -> Result<PathBuf, ()> {
     //! checks for a pyscan data directory (different to a project directory), otherwise creates one.
@@ -92,10 +95,10 @@ fn init_project_dir() -> Result<PathBuf, ()> {
     } 
 }
 
-async fn populate_project_dir() -> Result<(), Error> {
+pub async fn populate_project_dir() -> Result<(), Error> {
     //! populates the .pyscan directory with a database and its tables.
     
-    let (conn, tx) = retrieve_root().await?;
+    let (conn, _tx) = retrieve_root().await?;
 
     sqlx::query!(r#"
     CREATE TABLE IF NOT EXISTS Vulnerability (

@@ -2,9 +2,9 @@
 use anyhow::Error;
 use sqlx::Pool;
 use sqlx::Sqlite;
-use sqlx::query;
+
 use sqlx::SqlitePool;
-use super::paths::{PYSCAN_ROOT, PYSCAN_HOME};
+use super::paths::{PYSCAN_ROOT};
 
 
 pub async fn retrieve_root<'a>() -> Result<(Pool<Sqlite>, sqlx::Transaction<'a, Sqlite>), Error> {
