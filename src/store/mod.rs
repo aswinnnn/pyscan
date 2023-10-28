@@ -9,11 +9,6 @@ use async_trait::async_trait;
 use sqlx::query;
 
 
-enum DatabaseTable {
-    Dependency,
-    Vulnerability,
-    VulnerabilityDependency,
-}
 
 /// Represents the single, in-database Dependency row. NOT TO BE CONFUSED with the struct with same name in `parser::structs`
 pub struct Dependency {
@@ -33,6 +28,12 @@ struct VulnerabilityDependency {
     package: String
 }
 
+enum DatabaseTable {
+    Dependency(Dependency),
+    Vulnerability(Vulnerability),
+    VulnerabilityDependency(VulnerabilityDependency),
+}
+
 /// Database operations for different tables.
 #[async_trait]
 trait DatabaseOps {
@@ -40,17 +41,17 @@ trait DatabaseOps {
     async fn insert(d: DatabaseTable) -> Result<(), Error> {
         let (conn, tx) = retrieve_root().await?;
         match d {
-            DatabaseTable::Dependency => {
-            // query!("
-            // INSERT INTO Dependency (name, version, added, updated)
-            // VALUES (?,?,?,?)
-            // ", d.name, d.version, d.added, d.updated).execute(&conn).await?;
+            DatabaseTable::Dependency(d) => {
+            query!("
+            INSERT INTO Dependency (name, version, added, updated)
+            VALUES (?,?,?,?)
+            ", d.name, d.version, d.added, d.updated).execute(&conn).await?;
             Ok(())
             },
-            DatabaseTable::Vulnerability => {
+            DatabaseTable::Vulnerability(v) => {
                 Ok(())
             },
-            DatabaseTable::VulnerabilityDependency => {
+            DatabaseTable::VulnerabilityDependency(vd) => {
                 Ok(())
             },
         }
