@@ -2,8 +2,10 @@
 mod queries;
 mod paths;
 mod cache;
+use std::fmt::{Display, write};
+
 use anyhow::Error;
-use chrono::{NaiveDate, NaiveTime, NaiveDateTime};
+use chrono::{NaiveDate, NaiveTime, NaiveDateTime, format};
 use queries::retrieve_root;
 use async_trait::async_trait;
 use sqlx::query;
@@ -44,27 +46,102 @@ trait DatabaseOps {
             DatabaseTable::Dependency(dep) => {
             query!("
             INSERT INTO Dependency (name, version, added, updated)
-            VALUES (?,?,?,?)
+            VALUES (?,?,?,?);
             ", dep.name, dep.version, dep.added, dep.updated).execute(&conn).await?;
+            tx.commit().await?;
             Ok(())
             },
             DatabaseTable::Vulnerability(v) => {
                 query!("
             INSERT INTO Vulnerability (cve, name)
-            VALUES (?,?)
-            ", v.cve, v.name).execute(&conn).await?;
+            VALUES (?,?);
+            ", v.cve, v.name).execute(&conn).await?;tx.commit().await?;
                 Ok(())
             },
             DatabaseTable::VulnerabilityDependency(vd) => {
-                // query!("
-                // INSERT INTO VulnerabilityDependency (vulnerability_cve, dependency_name)
-                // VALUES (?,?)
-                // ", vd.cve, vd.package).execute(&conn).await?;
+                // have to use function here because the query macro doesnt agree with what
+                // i'm doing for some reason
+                sqlx::query(r#"
+                INSERT INTO VulnerabilityDependency (vulnerability_cve, dependency_name)
+                VALUES (?,?);
+                "#)
+                .bind(vd.cve)
+                .bind(vd.package)
+                .execute(&conn).await?; tx.commit().await?;
                 Ok(())
             },
         }
     
     }
 
+    async fn update(d: DatabaseTable) -> Result<(), Error> {
+        let (conn, tx) = retrieve_root().await?;
+        match d {
+            DatabaseTable::Dependency(dep) => {
+            query!("
+            UPDATE Dependency SET name = ?,  version = ?, added = ?, updated = ?
+            WHERE name = ?;
+            ", dep.name, dep.version, dep.added, dep.updated, dep.name).execute(&conn).await?;
+            tx.commit().await?;
+            Ok(())
+            },
+            DatabaseTable::Vulnerability(v) => {
+                Err(Error::msg(format!("There is no reason to update the Vuln table. Rows should either be removed or created upon discovering and discarding Vulnerabilities.\nAn update attempt was made:\n {}", v)))
+            }
+            DatabaseTable::VulnerabilityDependency(vd) => {
+                Err(Error::msg(format!("There is no reason to update the VD table. Rows should either be removed or created upon discovering and discarding vulns in packages.\nAn update attempt was made with this row:\n {}", vd)))
+            },
+        }
+    
+    }
+
+    // async fn delete(d: DatabaseTable) -> Result<(), Error> {
+    //     let (conn, tx) = retrieve_root().await?;
+    //     match d {
+    //         DatabaseTable::Dependency(dep) => {
+    //         query!("
+    //         DELETE FROM Dependency
+    //         WHERE name = ? AND version = ?;
+    //         ", dep.name, dep.version).execute(&conn).await?;
+    //         tx.commit().await?;
+    //         Ok(())
+    //         },
+    //         DatabaseTable::Vulnerability(v) => {
+    //             query!("
+    //             DELETE FROM Vulnerability
+    //             WHERE cve = ?;
+    //             ", v.cve).execute(&conn).await?;
+    //             tx.commit().await?;
+    //             Ok(())
+    //         }
+    //         DatabaseTable::VulnerabilityDependency(vd) => {
+    //             query!("
+    //             DELETE FROM VulnerabilityDependency
+    //             WHERE vulnerability_cve = ? AND dependency_name = ?;
+    //             ", vd.cve, vd.package).execute(&conn).await?;
+    //             tx.commit().await?;
+    //             Ok(())
+    //         },
+    //     }
+    
+    // }
+
 }
 
+impl std::fmt::Display for Dependency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "Dependency: {},\nVersion: {},\nAdded: {},\nUpdated: {}\n", self.name, self.version, self.added, self.updated)
+    }
+}
+
+impl std::fmt::Display for Vulnerability {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "CVE: {},\nName: {}\n", self.cve, self.name)
+    }
+}
+
+impl std::fmt::Display for VulnerabilityDependency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "Vulnerability {} was found in {}", self.cve, self.package)
+    }
+}

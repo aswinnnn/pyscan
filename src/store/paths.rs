@@ -117,10 +117,10 @@ async fn populate_project_dir() -> Result<(), Error> {
     CREATE TABLE IF NOT EXISTS VulnerabilityDependency (
         vulnerability_cve TEXT NOT NULL,
         dependency_name TEXT NOT NULL,
-        PRIMARY KEY (vulnerability_cve, dependency_name),
-        FOREIGN KEY (vulnerability_cve) REFERENCES Vulnerability (cve),
-        FOREIGN KEY (dependency_name) REFERENCES Dependency (name)
-    );    
+        FOREIGN KEY (vulnerability_cve) REFERENCES Vulnerability(cve) ON DELETE CASCADE,
+        FOREIGN KEY (dependency_name) REFERENCES Dependency(name) ON DELETE CASCADE,
+        PRIMARY KEY (vulnerability_cve, dependency_name)
+    )
     "#).execute(&conn).await;
     Ok(())
 }
