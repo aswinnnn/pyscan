@@ -18,14 +18,14 @@ pub struct Dependency {
     pub updated: NaiveDate
 }
 /// Represents the single, in-database Vulnerability. NOT TO BE CONFUSED with the struct with same name in `scanner::models`
-struct Vulnerability {
-    cve: String,
-    name: String,
+pub struct Vulnerability {
+    pub cve: String,
+    pub name: String,
 }
 /// Represents the (many-to-many) relation between vulnerabilities and python packages.
-struct VulnerabilityDependency {
-    cve: String,
-    package: String
+pub struct VulnerabilityDependency {
+    pub cve: String,
+    pub package: String
 }
 
 enum DatabaseTable {
@@ -41,14 +41,18 @@ trait DatabaseOps {
     async fn insert(d: DatabaseTable) -> Result<(), Error> {
         let (conn, tx) = retrieve_root().await?;
         match d {
-            DatabaseTable::Dependency(d) => {
+            DatabaseTable::Dependency(dep) => {
             query!("
             INSERT INTO Dependency (name, version, added, updated)
             VALUES (?,?,?,?)
-            ", d.name, d.version, d.added, d.updated).execute(&conn).await?;
+            ", dep.name, dep.version, dep.added, dep.updated).execute(&conn).await?;
             Ok(())
             },
             DatabaseTable::Vulnerability(v) => {
+                query!("
+            INSERT INTO Vulnerability (cve, name)
+            VALUES (?,?)
+            ", v.cve, v.name).execute(&conn).await?;
                 Ok(())
             },
             DatabaseTable::VulnerabilityDependency(vd) => {
