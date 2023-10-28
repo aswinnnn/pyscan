@@ -1,64 +1,61 @@
+//! This module deals with data storage. Databases, Caches, Paths, etc.
 mod queries;
 mod paths;
+mod cache;
 use anyhow::Error;
-use sqlx::SqlitePool;
-use chrono::{Utc, DateTime, NaiveDateTime, NaiveDate};
-use paths::{PYSCAN_HOME, PYSCAN_ROOT};
-use self::queries::retrieve_root;
+use chrono::{NaiveDate, NaiveTime, NaiveDateTime};
+use queries::retrieve_root;
+use async_trait::async_trait;
+use sqlx::query;
 
-// single unit of a dependency retrieved from pip
-struct PipDependency {
-    pkg_name: String,
-    pkg_version: String,
-    pkg_requires: String,
+
+enum DatabaseTable {
+    Dependency,
+    Vulnerability,
+    VulnerabilityDependency,
 }
 
-
-struct PipCache {
-    connected: bool,
-    last_update: DateTime<Utc>,
+/// Represents the single, in-database Dependency row. NOT TO BE CONFUSED with the struct with same name in `parser::structs`
+pub struct Dependency {
+    pub name: String,
+    pub version: String,
+    pub added: NaiveDate,
+    pub updated: NaiveDate
+}
+/// Represents the single, in-database Vulnerability. NOT TO BE CONFUSED with the struct with same name in `scanner::models`
+struct Vulnerability {
+    cve: String,
+    name: String,
+}
+/// Represents the (many-to-many) relation between vulnerabilities and python packages.
+struct VulnerabilityDependency {
+    cve: String,
+    package: String
 }
 
-impl PipCache {
-    pub async fn create_table() -> Result<(),Error> {
+/// Database operations for different tables.
+#[async_trait]
+trait DatabaseOps {
+
+    async fn insert(d: DatabaseTable) -> Result<(), Error> {
         let (conn, tx) = retrieve_root().await?;
-
-        sqlx::query!(r#"CREATE TABLE IF NOT EXISTS pipcache (
-            name TEXT NOT NULL,
-            version TEXT NOT NULL)"#).execute(&conn).await?;
-        tx.commit().await?;
-        Ok(())
+        match d {
+            DatabaseTable::Dependency => {
+            // query!("
+            // INSERT INTO Dependency (name, version, added, updated)
+            // VALUES (?,?,?,?)
+            // ", d.name, d.version, d.added, d.updated).execute(&conn).await?;
+            Ok(())
+            },
+            DatabaseTable::Vulnerability => {
+                Ok(())
+            },
+            DatabaseTable::VulnerabilityDependency => {
+                Ok(())
+            },
+        }
+    
     }
-
-    pub async fn add(name: &str, version: &str) -> Result<(), Error> {
-        let (conn, tx) = retrieve_root().await?;
-
-        sqlx::query!("INSERT INTO pipcache (name, version) VALUES (?, ?)", name, version).execute(&conn).await?;
-
-        tx.commit().await?;
-        
-        Ok(())
-    }
-    pub async fn update(name: &str, version: &str) -> Result<(), Error> {
-        let (conn, tx) = retrieve_root().await?;
-
-        sqlx::query!("UPDATE pipcache SET name = ?, version = ?", name, version).execute(&conn).await?;
-
-        tx.commit().await?;
-        
-        Ok(())
-    }
-
-    pub async fn remove(name: &str) -> Result<(), Error> {
-        let (conn, tx) = retrieve_root().await?;
-
-        sqlx::query!("DELETE FROM pipcache WHERE name = ?;", name).execute(&conn).await?;
-
-        tx.commit().await?;
-        
-        Ok(())
-    }
-
-
 
 }
+

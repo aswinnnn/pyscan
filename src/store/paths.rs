@@ -1,10 +1,15 @@
 //! Functions and statics concerning with paths and directories important for pyscan's functionality.
 use std::{fs, path::PathBuf, process::exit, env};
+use anyhow::Error;
 use dirs;
 use once_cell::sync::Lazy;
 
+use super::queries::retrieve_root;
+
 // contains data on all projects being watched across the user's system
 pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(|| init_data_dir());
+
+// TODO ! : depth check
 
 // at the project's root directory after `pyscan init`
 pub static PYSCAN_ROOT: Lazy<Result<PathBuf, ()>> = Lazy::new(|| init_project_dir());
@@ -87,7 +92,35 @@ fn init_project_dir() -> Result<PathBuf, ()> {
     } 
 }
 
-fn populate_project_dir() {
-    //! populates the .pyscan directory with a database.
+async fn populate_project_dir() -> Result<(), Error> {
+    //! populates the .pyscan directory with a database and its tables.
     
+    let (conn, tx) = retrieve_root().await?;
+
+    sqlx::query!(r#"
+    CREATE TABLE IF NOT EXISTS Vulnerability (
+        cve TEXT PRIMARY KEY,
+        name TEXT NOT NULL
+    );    
+    "#).execute(&conn).await;
+
+    sqlx::query!(r#"
+    CREATE TABLE IF NOT EXISTS Dependency (
+        name TEXT NOT NULL,
+        version TEXT NOT NULL,
+        added TEXT NOT NULL,
+        updated TEXT NOT NULL
+    );    
+    "#).execute(&conn).await;
+
+    sqlx::query!(r#"
+    CREATE TABLE IF NOT EXISTS VulnerabilityDependency (
+        vulnerability_cve TEXT NOT NULL,
+        dependency_name TEXT NOT NULL,
+        PRIMARY KEY (vulnerability_cve, dependency_name),
+        FOREIGN KEY (vulnerability_cve) REFERENCES Vulnerability (cve),
+        FOREIGN KEY (dependency_name) REFERENCES Dependency (name)
+    );    
+    "#).execute(&conn).await;
+    Ok(())
 }

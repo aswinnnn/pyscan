@@ -92,16 +92,16 @@ impl Dependency {
 }
 
 #[derive(Debug, Clone)]
+/// pyscan may get version info from a lot of places. This keeps it in check.
 pub struct VersionStatus {
-    // pyscan may get version info from a lot of places. This keeps it in check.
     pub pypi: bool,
     pub pip: bool,
     pub source: bool,
 }
 
 /// implementation for VersionStatus which can get return versions while updating the status, also pick the one decided via arguments, a nice abstraction really.
+/// retreives versions from pip and pypi.org in (pip, pypi) format.
 impl VersionStatus {
-    /// retreives versions from pip and pypi.org in (pip, pypi) format.
     pub async fn _full_check(&mut self, name: &str) -> (String, String) {
         let pip = utils::get_python_package_version(name);
         let pip_v = if let Err(e) = pip {
