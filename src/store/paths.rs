@@ -9,8 +9,8 @@ use super::queries::retrieve_root;
 // contains data on all projects being watched across the user's system
 pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(init_data_dir);
 
-// TODO ! : depth check
-// TODO ! : DEPENDENCY CHANGES still hasnt been implemented.
+// TODO ! : depth check [priority]
+// TODO ! : add .pyscan to .gitignore
 // TODO ! : create .store file
 // TODO ! : reinitialize if db already exists (add project to HOME db)
 
@@ -98,7 +98,7 @@ fn init_project_dir() -> Result<PathBuf, ()> {
 pub async fn populate_project_dir() -> Result<(), Error> {
     //! populates the .pyscan directory with a database and its tables.
     
-    let (conn, _tx) = retrieve_root().await?;
+    let (conn, tx) = retrieve_root().await?;
 
     sqlx::query!(r#"
     CREATE TABLE IF NOT EXISTS Vulnerability (
@@ -123,7 +123,17 @@ pub async fn populate_project_dir() -> Result<(), Error> {
         FOREIGN KEY (vulnerability_cve) REFERENCES Vulnerability(cve) ON DELETE CASCADE,
         FOREIGN KEY (dependency_name) REFERENCES Dependency(name) ON DELETE CASCADE,
         PRIMARY KEY (vulnerability_cve, dependency_name)
-    )
+    );
     "#).execute(&conn).await?;
+
+    sqlx::query!(r#"
+    CREATE TABLE IF NOT EXISTS DependencyChanges (
+        hash TEXT NOT NULL,
+        name TEXT NOT NULL,
+        change CHAR(1) NOT NULL,
+        timestamp INTEGER NOT NULL
+    );
+    "#).execute(&conn).await?;
+    tx.commit().await?;
     Ok(())
 }

@@ -3,10 +3,9 @@ pub mod cache;
 pub mod paths;
 pub mod queries;
 
-
 use anyhow::Error;
 use async_trait::async_trait;
-use chrono::{NaiveDate};
+use chrono::NaiveDate;
 use queries::retrieve_root;
 use sqlx::query;
 
@@ -28,10 +27,19 @@ pub struct VulnerabilityDependency {
     pub package: String,
 }
 
+/// in-database table for logging dependency changes.
+pub struct DependencyChanges {
+    hash: u64,
+    name: String,
+    change: char,
+    timestamp: i64,
+}
+
 enum DatabaseTable {
     Dependency(Dependency),
     Vulnerability(Vulnerability),
     VulnerabilityDependency(VulnerabilityDependency),
+    DependencyChanges(DependencyChanges),
 }
 
 /// Database of a single individual project being watched by Pyscan.
@@ -101,6 +109,20 @@ trait DatabaseOps {
                 tx.commit().await?;
                 Ok(())
             }
+            DatabaseTable::DependencyChanges(dc) => {
+                sqlx::query("
+            INSERT INTO DependencyChanges (hash, name, change, timestamp)
+            VALUES (?,?,?,?);
+            ")
+                .bind(dc.hash as i64)
+                .bind(dc.name)
+                .bind(dc.change.to_string())
+                .bind(dc.timestamp)
+                .execute(&conn)
+                .await?;
+                tx.commit().await?;
+                Ok(())
+            }
         }
     }
 
@@ -121,6 +143,9 @@ trait DatabaseOps {
             DatabaseTable::VulnerabilityDependency(vd) => {
                 Err(Error::msg(format!("There is no reason to update the VD table. Rows should either be removed or created upon discovering and discarding vulns in packages.\nAn update attempt was made with this row:\n {}", vd)))
             },
+            DatabaseTable::DependencyChanges(dc) => {
+                Err(Error::msg(format!("Why would you try to update a row in a table that tracks changes? Its a logger, there's no need to do changes, only insertion and deletion.\nAn update attempt was made with this row:\n {}", dc)))
+            }
         }
     }
 
@@ -128,8 +153,7 @@ trait DatabaseOps {
         let (conn, tx) = retrieve_root().await?;
         match d {
             DatabaseTable::Dependency(dep) => {
-                sqlx::query(
-                    r#"
+                sqlx::query(r#"
             DELETE FROM VulnerabilityDependency
             WHERE dependency_name = ?;
             DELETE FROM Dependency
@@ -144,14 +168,12 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::Vulnerability(v) => {
-                sqlx::query(
-                    r#"
+                sqlx::query(r#"
                 DELETE FROM VulnerabilityDependency
                 WHERE vulnerability_cve = ?;
                 DELETE FROM Vulnerability
                 WHERE cve = ?;
-                "#,
-                )
+                "#)
                 .bind(v.cve)
                 .execute(&conn)
                 .await?;
@@ -159,12 +181,10 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::VulnerabilityDependency(vd) => {
-                sqlx::query(
-                    "
+                sqlx::query(r#"
                 DELETE FROM VulnerabilityDependency
                 WHERE vulnerability_cve = ? AND dependency_name = ?;
-                ",
-                )
+                "#)
                 .bind(vd.cve)
                 .bind(vd.package)
                 .execute(&conn)
@@ -172,8 +192,21 @@ trait DatabaseOps {
                 tx.commit().await?;
                 Ok(())
             }
+            DatabaseTable::DependencyChanges(dc) => {
+                sqlx::query(r#"
+                DELETE FROM DependencyChanges
+                WHERE hash = ? AND name = ? AND change = ? AND timestamp = ?;
+                "#)
+                    .bind(dc.hash as i64)
+                    .bind(dc.name)
+                    .bind(dc.change.to_string())
+                    .bind(dc.timestamp)
+                    .execute(&conn)
+                    .await?;
+                    tx.commit().await?;
+                    Ok(())
+            }
         }
-
     }
 }
 
@@ -199,6 +232,16 @@ impl std::fmt::Display for VulnerabilityDependency {
             f,
             "Vulnerability {} was found in {}",
             self.cve, self.package
+        )
+    }
+}
+
+impl std::fmt::Display for DependencyChanges {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "Dependency: {},\nChange: {},\nTimestamp: {},\nHash: {}\n",
+            self.name, self.change, self.timestamp, self.hash
         )
     }
 }

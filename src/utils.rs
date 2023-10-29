@@ -1,3 +1,4 @@
+//! provides common functionalities for pyscan.
 use chrono::{Timelike, Utc};
 use reqwest::{
     self,

@@ -1347,6 +1347,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "toml",
+ "xxhash-rust",
 ]
 
 [[package]]
@@ -2558,6 +2559,12 @@ dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
 ]
+
+[[package]]
+name = "xxhash-rust"
+version = "0.8.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9828b178da53440fa9c766a3d2f73f7cf5d0ac1fe3980c1e5018d899fd19e07b"
 
 [[package]]
 name = "zeroize"
