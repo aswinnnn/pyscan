@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            DELETE FROM DependencyChanges\n            WHERE hash = ? AND name = ? AND change = ? AND timestamp = ?;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "9bcc2a68abc570c5721300b5a52c5f4a452c5b55d5dc93a3dafa8cc98dc33d23"
+}

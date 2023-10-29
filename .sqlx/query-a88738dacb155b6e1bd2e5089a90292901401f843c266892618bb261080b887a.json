@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS DependencyChanges (\n        hash TEXT NOT NULL,\n        name TEXT NOT NULL,\n        change CHAR(1) NOT NULL,\n        timestamp INTEGER NOT NULL\n    );\n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "a88738dacb155b6e1bd2e5089a90292901401f843c266892618bb261080b887a"
+}

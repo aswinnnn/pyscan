@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS VulnerabilityDependency (\n        vulnerability_cve TEXT NOT NULL,\n        dependency_name TEXT NOT NULL,\n        FOREIGN KEY (vulnerability_cve) REFERENCES Vulnerability(cve) ON DELETE CASCADE,\n        FOREIGN KEY (dependency_name) REFERENCES Dependency(name) ON DELETE CASCADE,\n        PRIMARY KEY (vulnerability_cve, dependency_name)\n    );\n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "7771f0e39a33e95603e67c8204dd21ee7456826574118c0d6c2637281925dedb"
+}
