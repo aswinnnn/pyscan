@@ -1,5 +1,5 @@
 //! Functions and statics concerning with paths and directories important for pyscan's functionality.
-use super::queries::retrieve_root;
+use super::queries::{retrieve_root, retrieve_home};
 use anyhow::Error;
 use once_cell::sync::Lazy;
 use std::{
@@ -181,18 +181,17 @@ pub async fn populate_data_dir() -> Result<(), Error> {
         }
     }
 
-    let (conn, tx) = retrieve_root().await?;
+    let (conn, tx) = retrieve_home().await?;
 
     sqlx::query!(
         r#"
     CREATE TABLE IF NOT EXISTS Settings (
-        key TEXT NOT NULL,
+        key TEXT UNIQUE NOT NULL,
         value TEXT NOT NULL
     );    
     "#
     )
-    .execute(&conn)
-    .await?;
+    .execute(&conn).await?;
 
     sqlx::query!(
         r#"
@@ -203,8 +202,7 @@ pub async fn populate_data_dir() -> Result<(), Error> {
         added TEXT NOT NULL
     );    
     "#)
-    .execute(&conn)
-    .await?;
+    .execute(&conn).await?;
     tx.commit().await?;
     Ok(())
 }
