@@ -3,6 +3,8 @@ pub mod cache;
 pub mod paths;
 pub mod queries;
 
+use std::collections::HashSet;
+
 use anyhow::Error;
 use async_trait::async_trait;
 use chrono::NaiveDate;
@@ -10,6 +12,7 @@ use queries::retrieve_root;
 use sqlx::query;
 
 /// Represents the single, in-database Dependency row. NOT TO BE CONFUSED with the struct with same name in `parser::structs`
+#[derive(PartialEq, Eq, Hash)]
 pub struct Dependency {
     pub name: String,
     pub version: String,
@@ -34,6 +37,10 @@ pub struct DependencyChanges {
     change: char,
     timestamp: i64,
 }
+
+/// Used to represent multiple dependencies.
+/// Makes it easier to spot differences (between changes) and keeps it unique.
+pub type Dependencies = HashSet<Dependency>;
 
 enum DatabaseTable {
     Dependency(Dependency),

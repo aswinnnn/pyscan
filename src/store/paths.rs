@@ -13,7 +13,6 @@ use std::{
 // contains data on all projects being watched across the user's system
 pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(init_data_dir);
 
-// TODO ! : add .pyscan to .gitignore
 // TODO ! : reinitialize if db already exists (add project to HOME db)
 
 // at the project's root directory after `pyscan init`
@@ -160,6 +159,53 @@ pub async fn populate_project_dir() -> Result<(), Error> {
 
     gitignore(); // add .pyscan to .gitignore
 
+    Ok(())
+}
+
+pub async fn populate_data_dir() -> Result<(), Error> {
+    //! populates the pyscan directory (at user's data directory) with a database and its tables.
+    //! this is only called once, first time running pyscan.
+    //! - creates pdata (pyscan data) file, creates tables
+
+    let dbpath = PYSCAN_HOME.clone().unwrap().join("pdata");
+    if let Ok(exists) = dbpath.try_exists() {
+        if !exists {
+            let r = fs::File::create(&dbpath);
+            if let Err(e) = r {
+                return Err(Error::msg(format!(
+                    "failed to create database.\npath: {}\nerror: {}\n",
+                    dbpath.display(),
+                    e
+                )));
+            }
+        }
+    }
+
+    let (conn, tx) = retrieve_root().await?;
+
+    sqlx::query!(
+        r#"
+    CREATE TABLE IF NOT EXISTS Settings (
+        key TEXT NOT NULL,
+        value TEXT NOT NULL
+    );    
+    "#
+    )
+    .execute(&conn)
+    .await?;
+
+    sqlx::query!(
+        r#"
+    CREATE TABLE IF NOT EXISTS ProjectInfo (
+        id INTEGER PRIMARY_KEY AUTO_INCREMENT,
+        project_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        added TEXT NOT NULL
+    );    
+    "#)
+    .execute(&conn)
+    .await?;
+    tx.commit().await?;
     Ok(())
 }
 
