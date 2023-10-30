@@ -114,7 +114,7 @@ trait DatabaseOps {
             INSERT INTO DependencyChanges (hash, name, change, timestamp)
             VALUES (?,?,?,?);
             ")
-                .bind(dc.hash as i64)
+                .bind(dc.hash.to_string())
                 .bind(dc.name)
                 .bind(dc.change.to_string())
                 .bind(dc.timestamp)
@@ -197,7 +197,7 @@ trait DatabaseOps {
                 DELETE FROM DependencyChanges
                 WHERE hash = ? AND name = ? AND change = ? AND timestamp = ?;
                 "#)
-                    .bind(dc.hash as i64)
+                    .bind(dc.hash.to_string())
                     .bind(dc.name)
                     .bind(dc.change.to_string())
                     .bind(dc.timestamp)

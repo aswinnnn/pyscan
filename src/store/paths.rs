@@ -2,13 +2,18 @@
 use super::queries::retrieve_root;
 use anyhow::Error;
 use once_cell::sync::Lazy;
-use std::{env, fs, path::PathBuf, process::exit};
+use std::{
+    env,
+    fs::{self, File, OpenOptions},
+    io::Write,
+    path::PathBuf,
+    process::exit,
+};
 
 // contains data on all projects being watched across the user's system
 pub static PYSCAN_HOME: Lazy<Result<PathBuf, ()>> = Lazy::new(init_data_dir);
 
 // TODO ! : add .pyscan to .gitignore
-// TODO ! : create .store file
 // TODO ! : reinitialize if db already exists (add project to HOME db)
 
 // at the project's root directory after `pyscan init`
@@ -81,6 +86,23 @@ fn init_project_dir() -> Result<PathBuf, ()> {
 
 pub async fn populate_project_dir() -> Result<(), Error> {
     //! populates the .pyscan directory with a database and its tables.
+    //! this is only called on creation.
+    //! - creates .store file, creates tables
+    //! - adds .pyscan to gitignore
+
+    let dbpath = PYSCAN_ROOT.clone().unwrap().join(".store");
+    if let Ok(exists) = dbpath.try_exists() {
+        if !exists {
+            let r = fs::File::create(&dbpath);
+            if let Err(e) = r {
+                return Err(Error::msg(format!(
+                    "failed to create database.\npath: {}\nerror: {}\n",
+                    dbpath.display(),
+                    e
+                )));
+            }
+        }
+    }
 
     let (conn, tx) = retrieve_root().await?;
 
@@ -135,6 +157,9 @@ pub async fn populate_project_dir() -> Result<(), Error> {
     .execute(&conn)
     .await?;
     tx.commit().await?;
+
+    gitignore(); // add .pyscan to .gitignore
+
     Ok(())
 }
 
@@ -144,9 +169,9 @@ pub async fn populate_project_dir() -> Result<(), Error> {
 /// - `Ok(None)` => path does not exist
 /// - `Err` => Error
 fn exists_check(path: &mut PathBuf) -> Result<Option<PathBuf>, Error> {
-    // try_exists guide:
-    // ok(true) => exists
-    // ok(false) => does not exist
+    // try_exists() guide:
+    // Ok(true) => exists
+    // Ok(false) => does not exist
     // Err => Error
     let mut depth = 0;
 
@@ -174,6 +199,57 @@ fn exists_check(path: &mut PathBuf) -> Result<Option<PathBuf>, Error> {
                     "An error occurred while checking for .pyscan directory.\nerror: {}",
                     e
                 )));
+            }
+        }
+    }
+}
+
+fn gitignore() {
+    //! - add .pyscan to .gitignore
+    //! - checks cwd and its parent for one
+    let mut path = PYSCAN_ROOT.clone().unwrap();
+    if path.pop() {
+        if let Ok(exists) = path.join(".gitignore").try_exists() {
+            if exists {
+                let f = OpenOptions::new()
+                    .append(true)
+                    .open(path.join(".gitignore"));
+                if let Err(e) = f {
+                    eprintln!("There was a problem writing to .gitignore.\nerror: {}", e);
+                } else {
+                    if let Ok(mut file) = f {
+                        let b = b"\n.pyscan/";
+                        let r = file.write_all(b);
+                        if let Err(e) = r {
+                            eprintln!("{}", e)
+                        }
+                    }
+                }
+            } else {
+                // check parent's parent
+                if path.pop() {
+                    if let Ok(exists) = path.join(".gitignore").try_exists() {
+                        if exists {
+                            let f = OpenOptions::new()
+                                .append(true)
+                                .open(path.join(".gitignore"));
+                            if let Err(e) = f {
+                                eprintln!(
+                                    "There was a problem writing to .gitignore.\nerror: {}",
+                                    e
+                                );
+                            } else {
+                                if let Ok(mut file) = f {
+                                    let b = b"\n.pyscan/";
+                                    let r = file.write_all(b);
+                                    if let Err(e) = r {
+                                        eprintln!("{}", e)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

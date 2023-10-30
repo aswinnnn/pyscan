@@ -76,3 +76,6 @@ docs/_build/
 out.txt
 requirements.txt
 ptest
+
+# Pyscan
+.pyscan/
