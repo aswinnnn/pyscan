@@ -14,7 +14,7 @@ mod store;
 mod pep_508;
 use std::env;
 use tokio::task;
-use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}, store::{queries::PyscanData, paths::populate_data_dir}};
+use crate::{utils::get_version, parser::structs::{Dependency, VersionStatus}, store::{queries::PyscanData, paths::{populate_data_dir, pyscan_init_jobs}}};
 use store::paths::{PYSCAN_ROOT, populate_project_dir};
 
 #[derive(Parser, Debug)]
@@ -145,15 +145,7 @@ async fn main() {
                     eprintln!("Pyscan encountered a problem identifying your current working directory.\n Report this at github.com/aswinnnn/pyscan/issues"); exit(1);
                 }
             });
-            let res = populate_project_dir().await;
-            let dres = populate_data_dir().await;
-
-            if let Err(e) = dres {
-                eprintln!("Failed to create database at {}\nerror: {}", r.display(), e); exit(1)
-            }
-            if let Err(e) = res {
-                eprintln!("Failed to create database at {}\nerror: {}", r.display(), e); exit(1)
-            }
+            let _ = pyscan_init_jobs(&r).await.map_err(|e| {eprintln!("error: {}", e)});
             
             println!("Initialized persistent vigilance at {}\nYou can now run 'pyscan' or 'pyscan map' to start gathering data. See 'pyscan help' for more info.", r.display()); exit(0)
 
@@ -166,9 +158,6 @@ async fn main() {
     let sys_info =  SysInfo::new().await;
     // supposed to be a global static, cant atm because async closures are unstable.
     // has to be ran in diff thread due to underlying blocking functions, to be fixed soon.
-
-    let p = PyscanData::new().await;
-    p.settings().await;
 
     task::spawn(async move {
         // init pip cache, if cache-off is false or pip has been found

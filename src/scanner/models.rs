@@ -7,7 +7,7 @@ use serde::{Serialize, Deserialize};
 use crate::parser::structs::ScannedDependency;
 
 
-
+/// contains a vector of vulnerabilities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vulnerability {
     #[serde(rename = "vulns")]

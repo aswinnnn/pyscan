@@ -39,16 +39,22 @@ pub async fn retrieve_home<'a>() -> Result<(Pool<Sqlite>, sqlx::Transaction<'a, 
 }
 /// Represents project metadata stored in pyscan's home database.
 #[derive(PartialEq, Eq, Hash)]
-struct Project {
-    identifier: String,
-    path: String,
-    added: String
+pub struct Project {
+    pub identifier: String,
+    pub path: String,
+    pub added: String
 }
 
-type Projects = HashSet<Project>;
+impl Project {
+    pub fn new(ident: String, path: String, added: String) -> Project {
+        Project {identifier: ident, path, added: added}
+    }
+}
+
+pub type Projects = HashSet<Project>;
 
 /// An abstraction over the pyscan home database.
-/// this is just like the ProjectDatabase struct but for pyscan as a whole
+/// this is just like the ProjectDatabase struct but for pyscan's main data directory
 pub struct PyscanData;
 
 impl PyscanData {
@@ -73,7 +79,7 @@ impl PyscanData {
         Ok(map)
     }
 
-    async fn update_settings(key: &str, value: &str) -> anyhow::Result<()> {
+    pub async fn update_settings(key: &str, value: &str) -> anyhow::Result<()> {
         //! update or add a global setting.
         let (conn, tx) = retrieve_home().await?;
 
@@ -88,7 +94,7 @@ impl PyscanData {
 
         Ok(())
     }
-    async fn projects() -> anyhow::Result<Projects> {
+    pub async fn projects() -> anyhow::Result<Projects> {
         //! view all the projects' information.
         let mut r = Projects::new();
         let (conn, tx) = retrieve_home().await?;
@@ -105,7 +111,20 @@ impl PyscanData {
     
 
     }
-    async fn projects_add(project: Project) -> anyhow::Result<()> {
+
+    pub async fn project_by_id(identifier: &str) -> anyhow::Result<Project> {
+        //! view one of the projects' information by providing the project identifier.
+        let (conn, tx) = retrieve_home().await?;
+        
+        let p = sqlx::query_as!(Project, r#"
+        SELECT project_id as identifier, path, added FROM ProjectInfo
+        WHERE project_id = ?;
+        "#, identifier).fetch_one(&conn).await?;
+        tx.commit().await?;
+        Ok(p)
+    }
+    
+    pub async fn projects_add(project: Project) -> anyhow::Result<()> {
         let (conn, tx) = retrieve_home().await?;
         sqlx::query!(r#"
         INSERT INTO ProjectInfo (project_id, path, added)
@@ -114,7 +133,7 @@ impl PyscanData {
         tx.commit().await?;
         Ok(())
     }
-    async fn projects_update(project: Project) -> anyhow::Result<()> {
+    pub async fn projects_update(project: Project) -> anyhow::Result<()> {
         //! the only thing that can be updated in this table is path.
         //! the others, one is a primary key and the other is a timestamp of when that project 
         //! was inited.

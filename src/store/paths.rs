@@ -1,5 +1,5 @@
 //! Functions and statics concerning with paths and directories important for pyscan's functionality.
-use super::queries::{retrieve_root, retrieve_home};
+use super::queries::{retrieve_root, retrieve_home, Project, self, PyscanData};
 use anyhow::Error;
 use once_cell::sync::Lazy;
 use std::{
@@ -62,7 +62,7 @@ fn init_project_dir() -> Result<PathBuf, ()> {
     //! This directory contains the sqlite db and most of the persistent stuff useful for an individual project's security.
     //! - created on `pyscan init` and NOWHERE else
     //! - its used inside a lazy static, which should be the main way of getting the project dir's path
-    //! - usage of the static should be done in a context where `pyscan init` has been confirmed to be run.
+    //! - usage of the static should be done in a context where `pyscan init` has been confirmed to be run except for `pyscan init`.
     let dir = env::current_dir();
     if let Ok(d) = dir {
         let mut dpath = d.clone();
@@ -297,4 +297,49 @@ fn gitignore() {
             }
         }
     }
+}
+
+/// every project has a unique hashed identifier. This keeps the data
+/// collected name and path agnostic.
+async fn create_identifier(path: &PathBuf) -> anyhow::Result<()> {
+    // assuming the path is PYSCAN_ROOT (containing /.pyscan/)
+
+    let hash = xxhash_rust::xxh3::xxh3_64(path.display().to_string().as_bytes());
+    let identfile = path.join(".IDENT");
+
+    let tryexist = identfile.try_exists().map_err(|e| {
+        eprintln!("error: {}", e); exit(1)
+    });
+    if let Ok(r) = tryexist {
+        if !r {
+            let p = Project::new(hash.to_string(), path.to_string_lossy().to_string(), chrono::Utc::now().to_rfc2822());
+            PyscanData::projects_add(p).await?;
+            fs::write(identfile, hash.to_string())?;
+            Ok(())
+        }
+        else { 
+        // an .IDENT file already exists? User probably trying to re-init the file because of a path change. 
+        // update/create the project info with the new path (after making sure the identifier exists in db)
+
+            let identifier = fs::read_to_string(identfile)?;
+
+            let foundproject = queries::PyscanData::project_by_id(identifier.trim()).await?;
+            let p = Project::new(foundproject.identifier, path.to_string_lossy().to_string(), foundproject.added);
+            let _ = PyscanData::projects_update(p).await.map_err(|e| {eprintln!("error: {}", e); exit(1)}); 
+            Ok(())
+        }
+    }
+    else {
+        Err(Error::msg("An unreachable error occurred. Open an issue at github.com/aswinnnn/pyscan"))
+    }
+}
+
+/// important routines performed after initing a new project.
+pub async fn pyscan_init_jobs(path: &PathBuf ) -> anyhow::Result<()> {
+    populate_project_dir().await?; // create if not exists the project db
+    populate_data_dir().await?; // create if not exists the data db
+    create_identifier(path).await?;  // create/update the project info
+
+    // i havent used join! because i do want these futures to execute in the above order.
+    Ok(())
 }

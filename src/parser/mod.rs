@@ -183,6 +183,7 @@ async fn find_pyproject_imports(f: &Vec<FoundFile>) {
     }
     // println!("{:?}", imports.clone());
     // cons.clear_last_lines(1).unwrap();
+    
     // --- pass the dependencies to the scanner/api ---
     scanner::start(imports).await.unwrap();
 }
