@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT OR IGNORE INTO Settings (key,value) VALUES (?,?);\n        UPDATE Settings SET key = ?, value = ?\n        WHERE key = ?;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "d0e102115b330f41819727bf826f6ab9241d4926706174e52c87dde259c4b71d"
+}

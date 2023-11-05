@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE ProjectInfo SET path = ?\n        WHERE project_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "1143eed8e081ab8548c45cac31fb8f82e4dbd0c15f8f4c79e647e9b6195eb4a1"
+}

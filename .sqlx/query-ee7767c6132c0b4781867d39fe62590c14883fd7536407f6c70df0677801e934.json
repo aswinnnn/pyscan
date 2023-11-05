@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS Settings (\n        key TEXT UNIQUE NOT NULL,\n        value TEXT NOT NULL\n    );    \n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "ee7767c6132c0b4781867d39fe62590c14883fd7536407f6c70df0677801e934"
+}

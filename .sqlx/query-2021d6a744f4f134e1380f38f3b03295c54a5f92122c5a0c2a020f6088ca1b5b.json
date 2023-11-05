@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n    CREATE TABLE IF NOT EXISTS ProjectInfo (\n        id INTEGER PRIMARY_KEY AUTO_INCREMENT,\n        project_id TEXT NOT NULL,\n        path TEXT NOT NULL,\n        added TEXT NOT NULL\n    );    \n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "2021d6a744f4f134e1380f38f3b03295c54a5f92122c5a0c2a020f6088ca1b5b"
+}
