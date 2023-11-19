@@ -217,7 +217,7 @@ fn exists_check(path: &mut PathBuf) -> Result<Option<PathBuf>, Error> {
     // Ok(true) => exists
     // Ok(false) => does not exist
     // Err => Error
-    let mut depth = 0;
+    let mut depth: u8 = 0;
 
     loop {
         if depth == 3 {

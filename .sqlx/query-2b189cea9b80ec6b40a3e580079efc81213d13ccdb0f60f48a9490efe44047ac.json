@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT hash from DependencyChanges \n        WHERE hash = ?;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "hash",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2b189cea9b80ec6b40a3e580079efc81213d13ccdb0f60f48a9490efe44047ac"
+}

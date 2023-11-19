@@ -2,6 +2,7 @@
 pub mod cache;
 pub mod paths;
 pub mod queries;
+pub mod changes;
 
 use std::collections::HashSet;
 
@@ -10,6 +11,7 @@ use async_trait::async_trait;
 use chrono::NaiveDate;
 use queries::retrieve_root;
 use sqlx::query;
+use xxhash_rust::xxh3::xxh3_64;
 
 /// Represents the single, in-database Dependency row. NOT TO BE CONFUSED with the struct with same name in `parser::structs`
 #[derive(PartialEq, Eq, Hash)]
@@ -30,12 +32,15 @@ pub struct VulnerabilityDependency {
     pub package: String,
 }
 
+// TODO HASH LOOKUP CHANGES
+// use a dot (graphviz) file fs system
+
 /// in-database table for logging dependency changes.
 pub struct DependencyChanges {
-    hash: u64,
-    name: String,
-    change: char,
-    timestamp: i64,
+    pub hash: u64,
+    pub name: String,
+    pub change: char,
+    pub timestamp: i64,
 }
 
 /// Used to represent multiple dependencies.
@@ -55,12 +60,6 @@ enum DatabaseTable {
 struct ProjectDatabase;
 
 impl DatabaseOps for ProjectDatabase {}
-
-impl ProjectDatabase {
-    fn new() -> ProjectDatabase {
-        ProjectDatabase
-    }
-}
 
 /// Database operations for different tables.
 /// - Used by `ProjectDatabase` struct.
@@ -117,10 +116,12 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::DependencyChanges(dc) => {
-                sqlx::query("
+                sqlx::query(
+                    "
             INSERT INTO DependencyChanges (hash, name, change, timestamp)
             VALUES (?,?,?,?);
-            ")
+            ",
+                )
                 .bind(dc.hash.to_string())
                 .bind(dc.name)
                 .bind(dc.change.to_string())
@@ -160,7 +161,8 @@ trait DatabaseOps {
         let (conn, tx) = retrieve_root().await?;
         match d {
             DatabaseTable::Dependency(dep) => {
-                sqlx::query(r#"
+                sqlx::query(
+                    r#"
             DELETE FROM VulnerabilityDependency
             WHERE dependency_name = ?;
             DELETE FROM Dependency
@@ -175,12 +177,14 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::Vulnerability(v) => {
-                sqlx::query(r#"
+                sqlx::query(
+                    r#"
                 DELETE FROM VulnerabilityDependency
                 WHERE vulnerability_cve = ?;
                 DELETE FROM Vulnerability
                 WHERE cve = ?;
-                "#)
+                "#,
+                )
                 .bind(v.cve)
                 .execute(&conn)
                 .await?;
@@ -188,10 +192,12 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::VulnerabilityDependency(vd) => {
-                sqlx::query(r#"
+                sqlx::query(
+                    r#"
                 DELETE FROM VulnerabilityDependency
                 WHERE vulnerability_cve = ? AND dependency_name = ?;
-                "#)
+                "#,
+                )
                 .bind(vd.cve)
                 .bind(vd.package)
                 .execute(&conn)
@@ -200,22 +206,52 @@ trait DatabaseOps {
                 Ok(())
             }
             DatabaseTable::DependencyChanges(dc) => {
-                sqlx::query(r#"
+                sqlx::query(
+                    r#"
                 DELETE FROM DependencyChanges
                 WHERE hash = ? AND name = ? AND change = ? AND timestamp = ?;
-                "#)
-                    .bind(dc.hash.to_string())
-                    .bind(dc.name)
-                    .bind(dc.change.to_string())
-                    .bind(dc.timestamp)
-                    .execute(&conn)
-                    .await?;
-                    tx.commit().await?;
-                    Ok(())
+                "#,
+                )
+                .bind(dc.hash.to_string())
+                .bind(dc.name)
+                .bind(dc.change.to_string())
+                .bind(dc.timestamp)
+                .execute(&conn)
+                .await?;
+                tx.commit().await?;
+                Ok(())
             }
         }
     }
 }
+
+/// Trait for representing changes in the configuration files.
+#[async_trait]
+pub trait Change {
+    /// returns `Ok(true)` if a change has been detected by doing a hash look-up
+    async fn has_changed(s: &str) -> anyhow::Result<bool> {
+        let (conn, tx) = retrieve_root().await?;
+        let shash = xxh3_64(s.as_bytes()).to_string();
+        let r = sqlx::query!(
+            r#"
+        SELECT hash from DependencyChanges 
+        WHERE hash = ?;
+        "#,
+            shash
+        )
+        .fetch_optional(&conn)
+        .await?;
+        tx.commit().await?;
+
+        if r.is_some() { // file hasnt been changed (or reverted)
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl Change for DependencyChanges {}
 
 impl std::fmt::Display for Dependency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {

@@ -5,6 +5,8 @@ use std::process::exit;
 use std::{ffi::OsString, fs::File};
 mod extractor;
 pub mod structs;
+use crate::store::{DependencyChanges, Change};
+
 use super::scanner;
 use structs::{FileTypes, FoundFile, FoundFileResult};
 
@@ -70,7 +72,7 @@ pub async fn scan_dir(dir: &Path) {
     find_import(result).await
 }
 
-/// A nice abstraction over different ways to find imports for different filetypes.
+/// A nice abstraction over different ways to find imports for different configurations.
 async fn find_import(res: FoundFileResult) {
     let files = res.files;
     if res.reqs_found > res.pyproject_found {
