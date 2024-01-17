@@ -18,7 +18,7 @@ There's comments on almost anything comment-able and worthy. Feel free to look a
 
 - [`scanner::api.rs`](../src/scanner/api.rs) - how the API stuff gets done using the struct `Osv`, look at `mod.rs` for a higher level view.
   
-- [`docker.rs`](../src/docker/mod.rs) - handles getting and doing stuff with Docker.
+- [`docker.rs`](../src/docker/mod.rs) - handles getting and doing stuff with Docker. [this one is buggy and might get deprecated because i dont really care about docker, just run the program inside the container or something]
 
 - [`display.rs`](../src/display/mod.rs) - some functions used to print to the screen, not all though.
 
