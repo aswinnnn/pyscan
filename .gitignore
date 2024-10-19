@@ -73,3 +73,5 @@ docs/_build/
 out.txt
 requirements.txt
 ptest
+
+tests
