@@ -34,8 +34,7 @@ jobs:
          toolchain: stable
          components: cargo
       - name: Install maturin and build
-        run: pip install maturin && maturin build --release --out dist
-        run: maturin publish -u aswinnnn -p ${{ secrets.PYPI_API_TOKEN }}
+        run: pip install maturin && maturin build --release --out dist && maturin publish -u aswinnnn -p ${{ secrets.PYPI_API_TOKEN }}
   windows:
     runs-on: windows-latest
     strategy:
