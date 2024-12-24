@@ -14,6 +14,10 @@ pub async fn scan_dir(dir: &Path) {
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let filename = entry.file_name();
+            let filext = if let Some(ext) = Path::new(&filename).extension() {
+                ext.to_os_string()
+            } else {"none".into()};
+
 
             // setup.py check comes first otherwise it might cause issues with .py checker
             if *"setup.py" == filename.clone() {
@@ -25,8 +29,8 @@ pub async fn scan_dir(dir: &Path) {
                 result.setuppy();
             }
             // check if .py
-            // about the slice: [(file length) - 3..] for the extention
-            else if ".py" == &filename.to_str().unwrap()[{ filename.to_str().unwrap().len() - 3 }..] {
+            // checking file extension straight up from filename caused some bugs.
+            else if ".py" == filext {
                 result.add(FoundFile {
                     name: filename,
                     filetype: FileTypes::Python,

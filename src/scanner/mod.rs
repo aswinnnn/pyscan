@@ -18,7 +18,7 @@ pub async fn start(imports: Vec<Dependency>) -> Result<(), std::io::Error> {
     let collected = osv.query_batched(imports).await;
     // query_batched passes stuff onto display module after
     
-    // if everything went fine:
+    // if we collected vulns:
     if !collected.is_empty() {
         exit(1)
     }

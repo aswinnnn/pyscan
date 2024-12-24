@@ -407,13 +407,21 @@ impl QueryBatched {
 
 impl Vulnerability {
     pub fn to_scanned_dependency(&self, imports_info: &HashMap<String, String>) -> ScannedDependency {
+        // println!("{:#?}", imports_info);
         let name_from_v = if let Some(n) = self.vulns.first() {
             if !n.affected.is_empty() {n.affected.first().unwrap().package.name.clone()}
             else {"Name in Context".to_string()}
         }
         else {"Name In Context".to_string()};
 
-        let version_from_map = imports_info.get(&name_from_v).unwrap(); // unwrapping safe as the hashmap is literally from the source of where the vuln was created...hopefully.
+        let version_from_map = if let Some(v) = imports_info.get(&name_from_v) {
+            v
+        } else {
+            &"parent package related to one of your dependencies".to_string()
+            // this happens rarely but every once in a while a vulnerability
+            // gets assigned to a different (usually) parent package so trying to
+            // get the version from our map fails unfortunately.
+        };
 
         ScannedDependency { name: name_from_v, version: version_from_map.to_owned(), vuln: self.clone() }
 

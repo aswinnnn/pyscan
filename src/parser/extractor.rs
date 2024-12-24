@@ -10,9 +10,7 @@ use lazy_static::lazy_static;
 use pep_508::{self, Spec};
 use regex::Regex;
 
-
-
-use toml::{de::Error, Value};
+use toml::{de::Error, Table, Value};
 
 pub fn extract_imports_python(text: String, imp: &mut Vec<Dependency>) {
     lazy_static! {
@@ -200,14 +198,21 @@ pub fn extract_imports_pyproject(
     // println!("{:#?}",toml_value);
 
     // Helper function to extract dependency values (version strings) including nested tables
-    fn extract_dependencies(table: &toml::value::Table, poetry: Option<bool>) -> Result<Vec<String>, Error> {
+    fn extract_dependencies(
+        table: &toml::value::Table,
+        poetry: Option<bool>,
+    ) -> Result<Vec<String>, Error> {
         let mut deps = Vec::new();
 
         // for [project] in pyproject.toml, the insides require a different sort of parsing
-        // for poetry you need both keys and values (as dependency name and version), 
+        // for poetry you need both keys and values (as dependency name and version),
         // for [project] the values are just enough and the keys are in the vec below
-        let projectlevel: Vec<&str> = vec!["dependencies", "optional-dependencies.docs"];
-        
+        let projectlevel: Vec<&str> = vec![
+            "dependencies",
+            "optional-dependencies.docs",
+            "optional-dependencies",
+        ];
+
         for (key, version) in table {
             if projectlevel.contains(&key.as_str()) {
                 match version {
@@ -215,8 +220,38 @@ pub fn extract_imports_pyproject(
                         deps.push(version_str.to_string());
                     }
                     Value::Table(nested_table) => {
+                        if "optional-dependencies" == key {
+                            parse_opt_deps_pyproject(nested_table.clone(), &mut deps);
+                        } else {
+                            // Recursively extract dependencies from nested tables
+                            let nested_deps = extract_dependencies(nested_table, None)?;
+                            deps.extend(nested_deps);
+                        }
+                    }
+                    Value::Array(array) => {
+                        // Extract dependencies from an array (if any)
+                        for item in array {
+                            if let Value::String(item_str) = item {
+                                deps.push(item_str.to_string());
+                            }
+                        }
+                    }
+                    _ => eprintln!("ERR: Invalid dependency syntax found while TOML parsing"),
+                }
+            } else if poetry.unwrap_or(false) {
+                match version {
+                    Value::String(version_str) => {
+                        let verstr = version_str.to_string();
+                        if verstr.contains('^') {
+                            let s = format!("{} >= {}", key, verstr.strip_prefix('^').unwrap());
+                            deps.push(s);
+                        } else if verstr == "*" {
+                            deps.push(key.to_string());
+                        }
+                    }
+                    Value::Table(nested_table) => {
                         // Recursively extract dependencies from nested tables
-                        let nested_deps = extract_dependencies(nested_table,None)?;
+                        let nested_deps = extract_dependencies(nested_table, None)?;
                         deps.extend(nested_deps);
                     }
                     Value::Array(array) => {
@@ -230,34 +265,6 @@ pub fn extract_imports_pyproject(
                     _ => eprintln!("ERR: Invalid dependency syntax found while TOML parsing"),
                 }
             }
-            else if poetry.unwrap_or(false) {
-                    match version {
-                        Value::String(version_str) => {
-                            let verstr = version_str.to_string();
-                            if verstr.contains('^') {
-                                let s = format!("{} >= {}", key, verstr.strip_prefix('^').unwrap());
-                                deps.push(s);
-                            }
-                            else if verstr == "*" {
-                            deps.push(key.to_string());
-                            }
-                        }
-                        Value::Table(nested_table) => {
-                            // Recursively extract dependencies from nested tables
-                            let nested_deps = extract_dependencies(nested_table,None)?;
-                            deps.extend(nested_deps);
-                        }
-                        Value::Array(array) => {
-                            // Extract dependencies from an array (if any)
-                            for item in array {
-                                if let Value::String(item_str) = item {
-                                    deps.push(item_str.to_string());
-                                }
-                            }
-                        }
-                        _ => eprintln!("ERR: Invalid dependency syntax found while TOML parsing"),
-                    }
-            }
         }
         Ok(deps)
     }
@@ -270,7 +277,6 @@ pub fn extract_imports_pyproject(
 
     for key in keys_to_check {
         if key.contains("tool") {
-            
             if let Some(dependencies_table) = toml_value.get("tool") {
                 if let Some(dependencies_table) = dependencies_table.get("poetry") {
                     let poetrylevel: Vec<&str> = vec!["dependencies", "dev-dependencies"];
@@ -278,7 +284,8 @@ pub fn extract_imports_pyproject(
                         if let Some(dep) = dependencies_table.get(k) {
                             match dep {
                                 Value::Table(table) => {
-                                    all_dependencies.extend(extract_dependencies(table, Some(true))?);                            
+                                    all_dependencies
+                                        .extend(extract_dependencies(table, Some(true))?);
                                 }
                                 // its definitely gonna be a table anyway, so...
                                 Value::String(_) => todo!(),
@@ -293,24 +300,24 @@ pub fn extract_imports_pyproject(
                 }
             }
         }
-
         // if its not poetry, check for [project] dependencies
         else if !key.contains("poetry") {
-
             if let Some(dependencies_table) = toml_value.get(key) {
                 if let Some(dependencies) = dependencies_table.as_table() {
-                        all_dependencies.extend(extract_dependencies(dependencies, None)?);
+                    all_dependencies.extend(extract_dependencies(dependencies, None)?);
                 }
             }
-        }
-        else {
-            eprintln!("The pyproject.toml seen here is unlike of a python project. Please check and make
-            sure you are in the right directory, or check the toml file."); exit(1)
+        } else {
+            eprintln!(
+                "The pyproject.toml seen here is unlike of a python project. Please check and make
+            sure you are in the right directory, or check the toml file."
+            );
+            exit(1)
         }
     }
-    // the toml might contain repeated dependencies 
+    // the toml might contain repeated dependencies
     // for different tools, dev tests, etc.
-    all_dependencies.dedup(); 
+    all_dependencies.dedup();
 
     for d in all_dependencies {
         let d = d.as_str();
@@ -349,4 +356,32 @@ pub fn extract_imports_pyproject(
         }
     }
     Ok(())
+}
+
+pub fn parse_opt_deps_pyproject(table: Table, deps: &mut Vec<String>) {
+    for v in table.values() {
+        match v {
+            Value::Array(a) => {
+                for d in a {
+                    match d {
+                        Value::String(dependency) => {
+                            deps.push(dependency.to_owned());
+                        }
+                        Value::Integer(_) => todo!(),
+                        Value::Float(_) => todo!(),
+                        Value::Boolean(_) => todo!(),
+                        Value::Datetime(datetime) => todo!(),
+                        Value::Array(vec) => todo!(),
+                        Value::Table(map) => todo!(),
+                    }
+                }
+            }
+            Value::String(_) => todo!(),
+            Value::Integer(_) => todo!(),
+            Value::Float(_) => todo!(),
+            Value::Boolean(_) => todo!(),
+            Value::Datetime(datetime) => todo!(),
+            Value::Table(map) => todo!(),
+        }
+    }
 }

@@ -135,7 +135,6 @@ impl Osv {
                     }
                 }
             }
-
             if let Ok(p) = parsed {
                 for vres in p.results {
                     if let Some(vulns) = vres.vulns {
