@@ -77,7 +77,7 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 ## 🐰 Todo
 
-As of October 15, 2023:
+As of December 24, 2024:
 
 - [ ] Gather time to work on it (incredible task as a ~~high schooler~~ college freshman)
 - [ ] Persistent state representation of a project's security.
@@ -88,4 +88,6 @@ As of October 15, 2023:
 ## 🐹 Donate
 
 While not coding, I am a broke ~~high school~~ college student with nothing else to do. I appreciate all the help I can get.
+
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z74DCR4)
