@@ -19,7 +19,7 @@ use tokio::task;
 #[derive(Parser, Debug)]
 #[command(
     author = "aswinnnn",
-    version = "0.1.6",
+    version = "0.1.7",
     about = "python dependency vulnerability scanner.\n\ndo 'pyscan [subcommand] --help' for specific help."
 )]
 struct Cli {
@@ -103,7 +103,7 @@ static ARGS: Lazy<OnceLock<Cli>> = Lazy::new(|| OnceLock::from(Cli::parse()));
 // Why is it Lazy? Something about a non-const fn in a const world. Pretty surprised to see the compiler recommend an outside crate for this issue.
 
 static PIPCACHE: Lazy<PipCache> = Lazy::new(|| utils::PipCache::init());
-// is a hashmap of package name, version from 'pip list'
+// is a hashmap of (package name, version) from 'pip list'
 // because calling 'pip show' everytime might get expensive if theres a lot of dependencies to check.
 
 #[tokio::main]
@@ -157,7 +157,7 @@ async fn main() {
     }
 
     println!(
-        "pyscan v{} | by Aswin S (github.com/aswinnnn)",
+        "pyscan v{} | by Aswin S (github.com/aswinnnn) | \x1b[90mConsider donating to a broke college student: https://ko-fi.com/aswinnnn \x1b[0m",
         get_version()
     );
 

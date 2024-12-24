@@ -29,9 +29,9 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3.1.4
       - name: Setup Rust
-        uses: ATiltedTree/setup-rust@v1.0.5
+        uses: dtolnay/rust-toolchain@stable
         with:
-         rust-version: stable
+         toolchain: stable
          components: cargo
       - name: Install maturin and build
         run: pip install maturin && maturin build --release --out dist

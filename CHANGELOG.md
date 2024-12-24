@@ -89,3 +89,15 @@ Pyscan has some **very interesting developments** planned in the future. Checkou
 - [ ] the crate `pep-508` seems to be having trouble parsing embedded hash values in `requirements.txt` ( #16 ), which may or may not have a fix depending on the author of the lib.
 - [ ] (maybe) support for parsing SBOMs and KBOMs
 - [ ] (maybe) introduce displaying severity, along with a filter for known vuln IDs.
+
+
+## v0.1.7 (December 24,2024)
+
+### Notes
+
+- Includes critical bug fixes for #19 and #20
+- Fixes up the parsing logic a bit
+
+The PR and the "big" update is still an ongoing effort, slowed down due to my recent lack of time (college, part-time work).
+
+Consider **donating** if you *actually* use this tool, as I'm thinking about archiving it after some maintanence done.

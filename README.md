@@ -64,7 +64,7 @@ Here's the order of precedence for a source/config file:
 + `pyproject.toml`
 + your source code (`.py`)
 
-Pyscan will use your `pip` to find unknown versions, otherwise [pypi.org](https://pypi.org) for the latest version. Still, **Make sure you version-ize your requirements** and use proper [pep-508 syntax](https://peps.python.org/pep-0508/).
+Pyscan will use your `pip` to find unknown versions, otherwise [pypi.org](https://pypi.org) for the latest version. Still, **it is recommended to version-ize your requirements** and use proper [pep-508 syntax](https://peps.python.org/pep-0508/).
 
 ## Building
 
@@ -79,10 +79,11 @@ pyscan doesn't make sure your code is safe from everything. Use all resources av
 
 As of October 15, 2023:
 
-- [ ] Gather time to work on it (incredible task as a high schooler)
+- [ ] Gather time to work on it (incredible task as a ~~high schooler~~ college freshman)
 - [ ] Persistent state representation of a project's security.
 - [ ] Graphical analysis of dependencies and their dependencies, and so on.
 - [ ] Better display, search, filter of vulns  
+- [ ] Finish the "big" update (All of the above is a part of PR #17)
 
 ## 🐹 Donate
 

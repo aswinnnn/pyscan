@@ -30,7 +30,7 @@ pub fn get_time() -> String {
 }
 
 pub fn get_version() -> String {
-    "0.1.6".to_string()
+    "0.1.7".to_string()
 }
 
 pub async fn _reqwest_send(method: &str, url: String) -> Option<Response> {

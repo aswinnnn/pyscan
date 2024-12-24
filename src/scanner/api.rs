@@ -159,7 +159,7 @@ impl Osv {
                 display::display_queried(&scanneddeps, &mut imports_info);
                 scanneddeps
             } else {
-                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::query_batched");
+                eprintln!("Invalid parse of API reponse at src/scanner/api.rs::query_batched\nThis is usually due to a unforeseen API response or a malformed source file.");
                 exit(1);
             }
         } else {
